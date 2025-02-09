@@ -59,3 +59,11 @@ window.addEventListener('load', () => {
     new FPSCounter();
   }, 200);
 });
+
+window.addEventListener('keydown', (event) => {
+  // Toggle video mode with F9
+  if (event.key === 'F9' || event.keyCode === 120) {
+    event.preventDefault(); // Prevent default F9 behavior
+    document.body.classList.toggle('video-mode');
+  }
+});
