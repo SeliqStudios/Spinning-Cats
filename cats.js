@@ -27,101 +27,226 @@ class CatSimulation {
       {name: 'Ragdoll', color: 0xF0F8FF, eyeColor: 0x0000FF},
       {name: 'British Shorthair', color: 0x708090, eyeColor: 0xFFA500}
     ];
+
+    this.raycaster = new THREE.Raycaster();
+    this.mouse = new THREE.Vector2();
+    this.selectedCat = null;
+    this.offset = new THREE.Vector3();
+    this.setupDragControls();
+
+    // Add a new flag for crazy mode
+    this.isCrazyModeActive = false;
+    this.crazyModeCats = new Map(); // To track crazy mode cats
   }
 
-  init() {
-    // Only initialize if not already initialized
-    if (this.scene) return;
-    
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    this.camera.position.z = 5;
+  setupDragControls() {
+    // Only setup if renderer exists
+    if (!this.renderer) return;
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    document.getElementById("mainContent").appendChild(this.renderer.domElement);
+    const domElement = this.renderer.domElement;
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    this.scene.add(ambientLight);
+    // Mouse move event for dragging
+    domElement.addEventListener('mousemove', (event) => {
+      // Calculate mouse position in normalized device coordinates
+      this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-    directionalLight.position.set(0, 1, 1);
-    this.scene.add(directionalLight);
-
-    this.animate();
-    this.spawnCats();
-
-    // Setup settings event listeners
-    this.setupSettingsListeners();
-  }
-
-  setupSettingsListeners() {
-    const spawnRateInput = document.getElementById('spawnRate');
-    const speedRateInput = document.getElementById('speedRate');
-    const spinRateInput = document.getElementById('spinRate');
-    const despawnRateInput = document.getElementById('despawnRate');
-    const settingsToggle = document.getElementById('settingsToggle');
-    const settingsTab = document.getElementById('settingsTab');
-
-    // Update spawn rate display and setting
-    spawnRateInput.addEventListener('input', (e) => {
-      document.getElementById('spawnRateValue').textContent = e.target.value;
-      this.settings.spawnRate = parseFloat(e.target.value);
-      // Restart cat spawning with new rate
-      this.stopSpawningCats();
-      this.spawnCats();
-    });
-
-    // Update speed rate display and setting
-    speedRateInput.addEventListener('input', (e) => {
-      document.getElementById('speedRateValue').textContent = e.target.value;
-      this.settings.speedRate = parseFloat(e.target.value);
-    });
-
-    // Update spin rate display and setting
-    spinRateInput.addEventListener('input', (e) => {
-      document.getElementById('spinRateValue').textContent = e.target.value;
-      this.settings.spinRate = parseFloat(e.target.value);
-    });
-
-    // Despawn rate listener
-    despawnRateInput.addEventListener('input', (e) => {
-      document.getElementById('despawnRateValue').textContent = e.target.value;
-      this.settings.despawnRate = parseFloat(e.target.value);
-      // No immediate action needed, will affect future cat spawns
-    });
-
-    // Toggle settings tab
-    settingsToggle.addEventListener('click', () => {
-      settingsTab.classList.toggle('open');
-    });
-
-    const startStopButton = document.getElementById('startStopButton');
-    const resetButton = document.getElementById('resetButton');
-
-    // Start/Stop button logic
-    startStopButton.addEventListener('click', () => {
-      if (this.isSimulationRunning) {
-        this.stopSimulation();
-        startStopButton.textContent = 'Start';
-      } else {
-        this.startSimulation();
-        startStopButton.textContent = 'Stop';
+      if (this.selectedCat) {
+        // Update the raycaster with the camera and mouse position
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+        
+        // Create a plane at the cat's current position
+        const intersectionPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(
+          this.camera.getWorldDirection(new THREE.Vector3()),
+          this.selectedCat.position
+        );
+        
+        // Create a Vector3 to store the intersection point
+        const intersectionPoint = new THREE.Vector3();
+        
+        // Use intersectPlane method correctly
+        if (this.raycaster.ray.intersectPlane(intersectionPlane, intersectionPoint)) {
+          // Move the selected cat to the intersection point offset
+          const point = intersectionPoint.sub(this.offset);
+          this.selectedCat.position.copy(point);
+        }
       }
     });
 
-    // Reset button logic
-    resetButton.addEventListener('click', () => {
-      this.resetSimulation();
-      startStopButton.textContent = 'Stop';
+    // Mouse down event to select a cat
+    domElement.addEventListener('mousedown', (event) => {
+      // Calculate mouse position in normalized device coordinates
+      this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      // Update the raycaster with the camera and mouse position
+      this.raycaster.setFromCamera(this.mouse, this.camera);
+
+      // Check for intersections with cats
+      const intersects = this.raycaster.intersectObjects(this.cats, true);
+
+      if (intersects.length > 0) {
+        // Find the topmost parent (the cat group)
+        this.selectedCat = intersects[0].object.parent;
+
+        // Create a drag plane parallel to the camera
+        this.dragPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(
+          this.camera.getWorldDirection(new THREE.Vector3()),
+          this.selectedCat.position
+        );
+
+        // Create a Vector3 to store the intersection point
+        const intersectionPoint = new THREE.Vector3();
+        
+        // Calculate the offset between the mouse and the cat's position
+        if (this.raycaster.ray.intersectPlane(this.dragPlane, intersectionPoint)) {
+          this.offset.copy(intersectionPoint.sub(this.selectedCat.position));
+        }
+      }
     });
 
-    // Add Spawn Cat button listener
-    const spawnCatButton = document.getElementById('spawnCatButton');
-    spawnCatButton.addEventListener('click', () => {
-      // Only spawn if simulation is running
-      if (this.isSimulationRunning) {
-        this.spawnRandomCat();
+    // Mouse up event to release the cat
+    domElement.addEventListener('mouseup', () => {
+      this.selectedCat = null;
+    });
+
+    // Touch events for mobile support
+    domElement.addEventListener('touchstart', (event) => {
+      // Prevent default touch behavior
+      event.preventDefault();
+
+      // Use the first touch point
+      const touch = event.touches[0];
+      
+      // Calculate touch position in normalized device coordinates
+      this.mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+      this.mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+
+      // Update the raycaster with the camera and touch position
+      this.raycaster.setFromCamera(this.mouse, this.camera);
+
+      // Check for intersections with cats
+      const intersects = this.raycaster.intersectObjects(this.cats, true);
+
+      if (intersects.length > 0) {
+        // Find the topmost parent (the cat group)
+        this.selectedCat = intersects[0].object.parent;
+
+        // Create a drag plane parallel to the camera
+        this.dragPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(
+          this.camera.getWorldDirection(new THREE.Vector3()),
+          this.selectedCat.position
+        );
+
+        // Create a Vector3 to store the intersection point
+        const intersectionPoint = new THREE.Vector3();
+        
+        // Calculate the offset between the touch and the cat's position
+        if (this.raycaster.ray.intersectPlane(this.dragPlane, intersectionPoint)) {
+          this.offset.copy(intersectionPoint.sub(this.selectedCat.position));
+        }
+      }
+    }, { passive: false });
+
+    domElement.addEventListener('touchmove', (event) => {
+      // Prevent default touch behavior (scrolling)
+      event.preventDefault();
+
+      // Use the first touch point
+      const touch = event.touches[0];
+      
+      // Calculate touch position in normalized device coordinates
+      this.mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+      this.mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+
+      if (this.selectedCat) {
+        // Update the raycaster with the camera and touch position
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+        
+        // Create a plane at the cat's current position
+        const intersectionPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(
+          this.camera.getWorldDirection(new THREE.Vector3()),
+          this.selectedCat.position
+        );
+        
+        // Create a Vector3 to store the intersection point
+        const intersectionPoint = new THREE.Vector3();
+        
+        // Use intersectPlane method correctly
+        if (this.raycaster.ray.intersectPlane(intersectionPlane, intersectionPoint)) {
+          // Move the selected cat to the intersection point offset
+          const point = intersectionPoint.sub(this.offset);
+          this.selectedCat.position.copy(point);
+        }
+      }
+    }, { passive: false });
+
+    domElement.addEventListener('touchend', () => {
+      this.selectedCat = null;
+    });
+  }
+
+  generateRandomName() {
+    const consonants = 'bcdfghjklmnpqrstvwxyz';
+    const vowels = 'aeiou';
+    const nameLength = Math.floor(Math.random() * 4) + 3; // 3-6 letters
+    let name = '';
+    
+    for (let i = 0; i < nameLength; i++) {
+      if (i % 2 === 0) {
+        name += consonants[Math.floor(Math.random() * consonants.length)];
+      } else {
+        name += vowels[Math.floor(Math.random() * vowels.length)];
+      }
+    }
+    
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+
+  setupHoverInfo() {
+    if (!this.renderer) return;
+
+    const infoDisplay = document.createElement('div');
+    infoDisplay.id = 'catHoverInfo';
+    infoDisplay.style.position = 'absolute';
+    infoDisplay.style.top = '10px';
+    infoDisplay.style.left = '50%';
+    infoDisplay.style.transform = 'translateX(-50%)';
+    infoDisplay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    infoDisplay.style.color = 'white';
+    infoDisplay.style.padding = '10px';
+    infoDisplay.style.borderRadius = '5px';
+    infoDisplay.style.display = 'none';
+    infoDisplay.style.zIndex = '1000';
+    document.body.appendChild(infoDisplay);
+
+    const domElement = this.renderer.domElement;
+
+    domElement.addEventListener('mousemove', (event) => {
+      // Calculate mouse position in normalized device coordinates
+      this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      // Update the raycaster with the camera and mouse position
+      this.raycaster.setFromCamera(this.mouse, this.camera);
+
+      // Check for intersections with cats
+      const intersects = this.raycaster.intersectObjects(this.cats, true);
+
+      if (intersects.length > 0) {
+        // Find the topmost parent (the cat group)
+        const cat = intersects[0].object.parent;
+        
+        // Get the breed of the cat (assuming it was saved during creation)
+        const breed = cat.userData?.breed || 'Unknown';
+        const name = cat.userData?.name || this.generateRandomName();
+
+        // Update and show the info display
+        infoDisplay.textContent = `Breed: ${breed} | Name: ${name}`;
+        infoDisplay.style.display = 'block';
+      } else {
+        // Hide the info display
+        infoDisplay.style.display = 'none';
       }
     });
   }
@@ -210,6 +335,12 @@ class CatSimulation {
       (Math.random() - 0.5) * 4
     );
 
+    // Add breed and name to userData
+    group.userData = {
+      breed: variant.name,
+      name: this.generateRandomName()
+    };
+
     return group;
   }
 
@@ -220,10 +351,19 @@ class CatSimulation {
     this.scene.add(cat);
     this.cats.push(cat);
     
+    // If crazy mode is active, make the new cat crazy
+    if (this.isCrazyModeActive) {
+      this.makeCatCrazy(cat);
+    }
+    
     // Set despawn timeout
     setTimeout(() => {
       this.scene.remove(cat);
       this.cats = this.cats.filter(c => c !== cat);
+      // Remove from crazy mode cats if applicable
+      if (this.crazyModeCats.has(cat)) {
+        this.crazyModeCats.delete(cat);
+      }
     }, this.settings.despawnRate * 1000);
   }
 
@@ -235,9 +375,18 @@ class CatSimulation {
       this.scene.add(cat);
       this.cats.push(cat);
       
+      // If crazy mode is active, make the new cat crazy
+      if (this.isCrazyModeActive) {
+        this.makeCatCrazy(cat);
+      }
+      
       setTimeout(() => {
         this.scene.remove(cat);
         this.cats = this.cats.filter(c => c !== cat);
+        // Remove from crazy mode cats if applicable
+        if (this.crazyModeCats.has(cat)) {
+          this.crazyModeCats.delete(cat);
+        }
       }, this.settings.despawnRate * 1000);
 
       index++;
@@ -308,22 +457,239 @@ class CatSimulation {
     this.spawnCats();
   }
 
+  init() {
+    // Only initialize if not already initialized
+    if (this.scene) return;
+    
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    this.camera.position.z = 5;
+
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById("mainContent").appendChild(this.renderer.domElement);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    this.scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight.position.set(0, 1, 1);
+    this.scene.add(directionalLight);
+
+    // Setup drag controls AFTER renderer is initialized
+    this.setupDragControls();
+
+    // Setup hover info AFTER renderer is initialized
+    this.setupHoverInfo();
+
+    this.animate();
+    this.spawnCats();
+
+    // Setup settings event listeners
+    this.setupSettingsListeners();
+  }
+
+  setupSettingsListeners() {
+    const spawnRateInput = document.getElementById('spawnRate');
+    const speedRateInput = document.getElementById('speedRate');
+    const spinRateInput = document.getElementById('spinRate');
+    const despawnRateInput = document.getElementById('despawnRate');
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsTab = document.getElementById('settingsTab');
+
+    // Update spawn rate display and setting
+    spawnRateInput.addEventListener('input', (e) => {
+      document.getElementById('spawnRateValue').textContent = e.target.value;
+      this.settings.spawnRate = parseFloat(e.target.value);
+      // Restart cat spawning with new rate
+      this.stopSpawningCats();
+      this.spawnCats();
+    });
+
+    // Update speed rate display and setting
+    speedRateInput.addEventListener('input', (e) => {
+      document.getElementById('speedRateValue').textContent = e.target.value;
+      this.settings.speedRate = parseFloat(e.target.value);
+    });
+
+    // Update spin rate display and setting
+    spinRateInput.addEventListener('input', (e) => {
+      document.getElementById('spinRateValue').textContent = e.target.value;
+      this.settings.spinRate = parseFloat(e.target.value);
+    });
+
+    // Despawn rate listener
+    despawnRateInput.addEventListener('input', (e) => {
+      document.getElementById('despawnRateValue').textContent = e.target.value;
+      this.settings.despawnRate = parseFloat(e.target.value);
+      // No immediate action needed, will affect future cat spawns
+    });
+
+    // Toggle settings tab
+    settingsToggle.addEventListener('click', () => {
+      settingsTab.classList.toggle('open');
+    });
+
+    const startStopButton = document.getElementById('startStopButton');
+    const resetButton = document.getElementById('resetButton');
+
+    // Start/Stop button logic
+    startStopButton.addEventListener('click', () => {
+      if (this.isSimulationRunning) {
+        this.stopSimulation();
+        startStopButton.textContent = 'Start';
+      } else {
+        this.startSimulation();
+        startStopButton.textContent = 'Stop';
+      }
+    });
+
+    // Reset button logic
+    resetButton.addEventListener('click', () => {
+      this.resetSimulation();
+      startStopButton.textContent = 'Stop';
+    });
+
+    const breedSelect = document.getElementById('catBreedSelect');
+    const catQuantityInput = document.getElementById('catQuantity');
+    const spawnCatButton = document.getElementById('spawnCatButton');
+
+    // Add breed selection listener
+    spawnCatButton.addEventListener('click', () => {
+      // Only spawn if simulation is running
+      if (this.isSimulationRunning) {
+        const selectedBreed = breedSelect.value;
+        const catQuantity = parseInt(catQuantityInput.value, 10);
+        
+        // Ensure quantity is within reasonable bounds
+        const quantity = Math.min(Math.max(1, catQuantity), 20);
+        
+        for (let i = 0; i < quantity; i++) {
+          if (selectedBreed === 'random') {
+            // Spawn a random cat breed
+            this.spawnRandomCat();
+          } else {
+            // Find the variant corresponding to the selected breed
+            const selectedVariant = this.catVariants.find(variant => variant.name === selectedBreed);
+            
+            if (selectedVariant) {
+              // Create a cat with the specific breed
+              const cat = this.createCat(selectedVariant);
+              this.scene.add(cat);
+              this.cats.push(cat);
+              
+              // If crazy mode is active, make the new cat crazy
+              if (this.isCrazyModeActive) {
+                this.makeCatCrazy(cat);
+              }
+              
+              setTimeout(() => {
+                this.scene.remove(cat);
+                this.cats = this.cats.filter(c => c !== cat);
+                // Remove from crazy mode cats if applicable
+                if (this.crazyModeCats.has(cat)) {
+                  this.crazyModeCats.delete(cat);
+                }
+              }, this.settings.despawnRate * 1000);
+            }
+          }
+        }
+      }
+    });
+
+    // Add Crazy Mode button
+    const crazyModeButton = document.getElementById('crazyModeButton');
+    crazyModeButton.addEventListener('click', () => {
+      this.toggleCrazyMode();
+      crazyModeButton.textContent = this.isCrazyModeActive ? 'Calm Down' : 'Crazy Mode';
+      crazyModeButton.classList.toggle('active');
+    });
+  }
+
+  toggleCrazyMode() {
+    this.isCrazyModeActive = !this.isCrazyModeActive;
+
+    if (this.isCrazyModeActive) {
+      // Activate crazy mode for existing cats
+      this.cats.forEach(cat => this.makeCatCrazy(cat));
+    } else {
+      // Restore normal behavior
+      this.crazyModeCats.forEach((crazyData, cat) => {
+        // Reset velocity and remove crazy mode properties
+        cat.userData.velocity = null;
+        cat.userData.isCrazy = false;
+      });
+      this.crazyModeCats.clear();
+    }
+  }
+
+  makeCatCrazy(cat) {
+    if (!cat.userData) cat.userData = {};
+    
+    // Set crazy mode properties
+    cat.userData.isCrazy = true;
+    cat.userData.velocity = new THREE.Vector3(
+      (Math.random() - 0.5) * 0.5,  // Random x velocity
+      (Math.random() - 0.5) * 0.5,  // Random y velocity
+      (Math.random() - 0.5) * 0.5   // Random z velocity
+    );
+
+    // Store in crazy mode cats map
+    this.crazyModeCats.set(cat, {
+      originalPosition: cat.position.clone()
+    });
+  }
+
+  updateCrazyModeCats() {
+    if (!this.isCrazyModeActive) return;
+
+    const bounds = 5; // Boundary for cat movement
+
+    this.crazyModeCats.forEach((crazyData, cat) => {
+      if (!cat.userData.velocity) return;
+
+      // Update position based on velocity
+      cat.position.add(cat.userData.velocity);
+
+      // Bounce off walls
+      if (Math.abs(cat.position.x) > bounds) {
+        cat.userData.velocity.x *= -1;
+      }
+      if (Math.abs(cat.position.y) > bounds) {
+        cat.userData.velocity.y *= -1;
+      }
+      if (Math.abs(cat.position.z) > bounds) {
+        cat.userData.velocity.z *= -1;
+      }
+
+      // Add some random rotation for extra craziness
+      cat.rotation.x += Math.random() * 0.1 - 0.05;
+      cat.rotation.y += Math.random() * 0.1 - 0.05;
+      cat.rotation.z += Math.random() * 0.1 - 0.05;
+    });
+  }
+
   animate() {
     requestAnimationFrame(() => this.animate());
     
     if (this.isSimulationRunning) {
+      // Update crazy mode cats if active
+      this.updateCrazyModeCats();
+
       this.cats.forEach(cat => {
         // Only apply rotations and animations if simulation is running
-        cat.rotation.x += this.settings.spinRate;
-        cat.rotation.y += this.settings.spinRate;
-        
-        if (cat.children[8]) {
-          cat.children[8].rotation.z = Math.sin(Date.now() * 0.005) * 0.2;
-        }
-        if (cat.children[4] && cat.children[5]) {
-          const pupilOffset = Math.sin(Date.now() * 0.003) * 0.01;
-          cat.children[4].position.x = 0.78 + pupilOffset;
-          cat.children[5].position.x = 0.78 + pupilOffset;
+        if (!cat.userData?.isCrazy) {
+          cat.rotation.x += this.settings.spinRate;
+          cat.rotation.y += this.settings.spinRate;
+          
+          if (cat.children[8]) {
+            cat.children[8].rotation.z = Math.sin(Date.now() * 0.005) * 0.2;
+          }
+          if (cat.children[4] && cat.children[5]) {
+            const pupilOffset = Math.sin(Date.now() * 0.003) * 0.01;
+            cat.children[4].position.x = 0.78 + pupilOffset;
+            cat.children[5].position.x = 0.78 + pupilOffset;
+          }
         }
       });
     }
