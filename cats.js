@@ -552,7 +552,13 @@ class CatSimulation {
 
     const breedSelect = document.getElementById('catBreedSelect');
     const catQuantityInput = document.getElementById('catQuantity');
+    const catQuantityValue = document.getElementById('catQuantityValue');
     const spawnCatButton = document.getElementById('spawnCatButton');
+
+    // Update cat quantity display
+    catQuantityInput.addEventListener('input', (e) => {
+      catQuantityValue.textContent = e.target.value;
+    });
 
     // Add breed selection listener
     spawnCatButton.addEventListener('click', () => {
