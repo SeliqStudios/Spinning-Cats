@@ -178,3 +178,11 @@ body, html {
   font-size: 14px;
   opacity: 0.5;
 }
+
+.video-mode #info,
+.video-mode #credit,
+.video-mode #fpsCounter,
+.video-mode #settingsToggle,
+.video-mode #versionText {
+  display: none !important;
+}
