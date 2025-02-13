@@ -245,3 +245,59 @@ body, html {
 .video-mode #customBreedModal {
   display: none !important;
 }
+
+.modal-content input[type="text"],
+.modal-content input[type="color"] {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  font-size: 16px;
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.modal-content input[type="text"]:focus,
+.modal-content input[type="color"]:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+}
+
+.modal-content input[type="color"] {
+  height: 50px;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  padding: 15px 30px;
+  border-radius: 10px;
+  z-index: 2500;
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.notification.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(10px);
+}
+
+.notification.success {
+  background-color: rgba(76, 175, 80, 0.9);  /* Green with opacity */
+}
+
+.notification.error {
+  background-color: rgba(244, 67, 54, 0.9);  /* Red with opacity */
+}
