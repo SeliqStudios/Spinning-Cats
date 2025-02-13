@@ -491,7 +491,14 @@ class CatSimulation {
       
       // Validate breed name
       if (!breedName) {
-        alert('Please enter a breed name');
+        this.showNotification('Please enter a breed name', 'error');
+        return;
+      }
+
+      // Check if breed name already exists
+      const breedExists = this.catVariants.some(variant => variant.name === breedName);
+      if (breedExists) {
+        this.showNotification(`Breed "${breedName}" already exists`, 'error');
         return;
       }
 
@@ -522,9 +529,30 @@ class CatSimulation {
       breedColorInput.value = '#A0522D';
       eyeColorInput.value = '#00FF00';
 
-      // Optional: Notify user
-      alert(`New cat breed "${breedName}" has been added!`);
+      // Show success notification
+      this.showNotification(`New cat breed "${breedName}" added successfully!`);
     });
+  }
+
+  showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    
+    // Remove any existing classes
+    notification.classList.remove('success', 'error');
+    
+    // Add appropriate class based on type
+    notification.classList.add(type);
+    
+    // Set message
+    notification.textContent = message;
+    
+    // Show notification
+    notification.classList.add('show');
+    
+    // Automatically hide after 3 seconds
+    setTimeout(() => {
+      notification.classList.remove('show');
+    }, 3000);
   }
 
   init() {
