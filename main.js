@@ -60,10 +60,17 @@ window.addEventListener('load', () => {
   }, 200);
 });
 
+// Add video mode functionality
 window.addEventListener('keydown', (event) => {
-  // Toggle video mode with F9
   if (event.key === 'F9' || event.keyCode === 120) {
-    event.preventDefault(); // Prevent default F9 behavior
     document.body.classList.toggle('video-mode');
   }
+});
+
+// Update cat quantity display
+const catQuantityInput = document.getElementById('catQuantity');
+const catQuantityValue = document.getElementById('catQuantityValue');
+
+catQuantityInput.addEventListener('input', (e) => {
+  catQuantityValue.textContent = e.target.value;
 });
