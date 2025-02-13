@@ -65,7 +65,31 @@
     </div>
     <button id="settingsToggle">⚙️</button>
     
-    <div id="versionText">V1.0.1</div>
+    <!-- New Custom Breed Button -->
+    <button id="customBreedButton">🐱</button>
+    
+    <!-- New Custom Breed Modal -->
+    <div id="customBreedModal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Create Custom Cat Breed</h2>
+        <div class="setting">
+          <label for="customBreedName">Breed Name:</label>
+          <input type="text" id="customBreedName" placeholder="Enter breed name">
+        </div>
+        <div class="setting">
+          <label for="customBreedColor">Fur Color:</label>
+          <input type="color" id="customBreedColor" value="#A0522D">
+        </div>
+        <div class="setting">
+          <label for="customEyeColor">Eye Color:</label>
+          <input type="color" id="customEyeColor" value="#00FF00">
+        </div>
+        <button id="saveCustomBreedButton">Save Breed</button>
+      </div>
+    </div>
+    
+    <div id="versionText">V1.0.2</div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
