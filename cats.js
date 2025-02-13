@@ -15,6 +15,7 @@ class CatSimulation {
       despawnRate: 30    // seconds before cats despawn
     };
 
+    // Modify catVariants to be mutable
     this.catVariants = [
       {name: 'Tabby', color: 0xA0522D, eyeColor: 0x00FF00},
       {name: 'Siamese', color: 0xFDF5E6, eyeColor: 0x0000FF}, 
@@ -457,6 +458,75 @@ class CatSimulation {
     this.spawnCats();
   }
 
+  setupCustomBreedModal() {
+    const customBreedButton = document.getElementById('customBreedButton');
+    const customBreedModal = document.getElementById('customBreedModal');
+    const closeModalBtn = document.querySelector('.close-modal');
+    const saveCustomBreedButton = document.getElementById('saveCustomBreedButton');
+
+    // Open modal
+    customBreedButton.addEventListener('click', () => {
+      customBreedModal.style.display = 'block';
+    });
+
+    // Close modal
+    closeModalBtn.addEventListener('click', () => {
+      customBreedModal.style.display = 'none';
+    });
+
+    // Close modal if clicked outside
+    window.addEventListener('click', (event) => {
+      if (event.target === customBreedModal) {
+        customBreedModal.style.display = 'none';
+      }
+    });
+
+    // Save custom breed
+    saveCustomBreedButton.addEventListener('click', () => {
+      const breedNameInput = document.getElementById('customBreedName');
+      const breedColorInput = document.getElementById('customBreedColor');
+      const eyeColorInput = document.getElementById('customEyeColor');
+
+      const breedName = breedNameInput.value.trim();
+      
+      // Validate breed name
+      if (!breedName) {
+        alert('Please enter a breed name');
+        return;
+      }
+
+      // Convert color from hex to decimal
+      const breedColor = parseInt(breedColorInput.value.replace('#', ''), 16);
+      const eyeColor = parseInt(eyeColorInput.value.replace('#', ''), 16);
+
+      // Create new breed variant
+      const newBreed = {
+        name: breedName,
+        color: breedColor,
+        eyeColor: eyeColor
+      };
+
+      // Add to cat variants
+      this.catVariants.push(newBreed);
+
+      // Update breed select dropdown
+      const breedSelect = document.getElementById('catBreedSelect');
+      const newOption = document.createElement('option');
+      newOption.value = breedName;
+      newOption.textContent = breedName;
+      breedSelect.appendChild(newOption);
+
+      // Close modal and reset inputs
+      customBreedModal.style.display = 'none';
+      breedNameInput.value = '';
+      breedColorInput.value = '#A0522D';
+      eyeColorInput.value = '#00FF00';
+
+      // Optional: Notify user
+      alert(`New cat breed "${breedName}" has been added!`);
+    });
+  }
+
   init() {
     // Only initialize if not already initialized
     if (this.scene) return;
@@ -481,6 +551,9 @@ class CatSimulation {
 
     // Setup hover info AFTER renderer is initialized
     this.setupHoverInfo();
+
+    // Add custom breed modal setup
+    this.setupCustomBreedModal();
 
     this.animate();
     this.spawnCats();
@@ -571,33 +644,39 @@ class CatSimulation {
         const quantity = Math.min(Math.max(1, catQuantity), 20);
         
         for (let i = 0; i < quantity; i++) {
+          let spawnedCat;
+          
           if (selectedBreed === 'random') {
             // Spawn a random cat breed
-            this.spawnRandomCat();
+            const randomVariant = this.catVariants[Math.floor(Math.random() * this.catVariants.length)];
+            spawnedCat = this.createCat(randomVariant);
           } else {
             // Find the variant corresponding to the selected breed
             const selectedVariant = this.catVariants.find(variant => variant.name === selectedBreed);
             
             if (selectedVariant) {
               // Create a cat with the specific breed
-              const cat = this.createCat(selectedVariant);
-              this.scene.add(cat);
-              this.cats.push(cat);
-              
-              // If crazy mode is active, make the new cat crazy
-              if (this.isCrazyModeActive) {
-                this.makeCatCrazy(cat);
-              }
-              
-              setTimeout(() => {
-                this.scene.remove(cat);
-                this.cats = this.cats.filter(c => c !== cat);
-                // Remove from crazy mode cats if applicable
-                if (this.crazyModeCats.has(cat)) {
-                  this.crazyModeCats.delete(cat);
-                }
-              }, this.settings.despawnRate * 1000);
+              spawnedCat = this.createCat(selectedVariant);
             }
+          }
+
+          if (spawnedCat) {
+            this.scene.add(spawnedCat);
+            this.cats.push(spawnedCat);
+            
+            // If crazy mode is active, make the new cat crazy
+            if (this.isCrazyModeActive) {
+              this.makeCatCrazy(spawnedCat);
+            }
+            
+            setTimeout(() => {
+              this.scene.remove(spawnedCat);
+              this.cats = this.cats.filter(c => c !== spawnedCat);
+              // Remove from crazy mode cats if applicable
+              if (this.crazyModeCats.has(spawnedCat)) {
+                this.crazyModeCats.delete(spawnedCat);
+              }
+            }, this.settings.despawnRate * 1000);
           }
         }
       }
