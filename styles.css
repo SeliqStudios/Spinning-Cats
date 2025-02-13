@@ -98,7 +98,10 @@ body, html {
   color: white;
 }
 
-.setting input[type="number"] {
+.setting input[type="number"],
+#customBreedName,
+#customBreedColor,
+#customEyeColor {
   width: 100%;
   background-color: rgba(255, 255, 255, 0.1);
   color: white;
@@ -179,10 +182,66 @@ body, html {
   opacity: 0.5;
 }
 
+#customBreedButton {
+  position: absolute;
+  left: 10px;
+  top: 60px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 24px;
+  transition: transform 0.2s ease;
+}
+
+#customBreedButton:hover {
+  transform: scale(1.1);
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.8);
+}
+
+.modal-content {
+  background-color: rgba(0, 0, 0, 0.9);
+  margin: 15% auto;
+  padding: 20px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 500px;
+  color: white;
+  position: relative;
+}
+
+.close-modal {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-modal:hover {
+  color: white;
+}
+
+.video-mode #settingsToggle,
+.video-mode #settingsTab,
 .video-mode #info,
 .video-mode #credit,
 .video-mode #fpsCounter,
-.video-mode #settingsToggle,
-.video-mode #versionText {
+.video-mode #versionText,
+.video-mode #customBreedButton,
+.video-mode #customBreedModal {
   display: none !important;
 }
