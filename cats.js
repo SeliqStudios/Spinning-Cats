@@ -38,6 +38,10 @@ class CatSimulation {
     // Add a new flag for crazy mode
     this.isCrazyModeActive = false;
     this.crazyModeCats = new Map(); // To track crazy mode cats
+    
+    this.isGameModeActive = false;
+    this.gameScore = 0;
+
   }
 
   setupDragControls() {
@@ -491,14 +495,7 @@ class CatSimulation {
       
       // Validate breed name
       if (!breedName) {
-        this.showNotification('Please enter a breed name', 'error');
-        return;
-      }
-
-      // Check if breed name already exists
-      const breedExists = this.catVariants.some(variant => variant.name === breedName);
-      if (breedExists) {
-        this.showNotification(`Breed "${breedName}" already exists`, 'error');
+        alert('Please enter a breed name');
         return;
       }
 
@@ -529,30 +526,9 @@ class CatSimulation {
       breedColorInput.value = '#A0522D';
       eyeColorInput.value = '#00FF00';
 
-      // Show success notification
-      this.showNotification(`New cat breed "${breedName}" added successfully!`);
+      // Optional: Notify user
+      alert(`New cat breed "${breedName}" has been added!`);
     });
-  }
-
-  showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    
-    // Remove any existing classes
-    notification.classList.remove('success', 'error');
-    
-    // Add appropriate class based on type
-    notification.classList.add(type);
-    
-    // Set message
-    notification.textContent = message;
-    
-    // Show notification
-    notification.classList.add('show');
-    
-    // Automatically hide after 3 seconds
-    setTimeout(() => {
-      notification.classList.remove('show');
-    }, 3000);
   }
 
   init() {
@@ -582,6 +558,8 @@ class CatSimulation {
 
     // Add custom breed modal setup
     this.setupCustomBreedModal();
+
+    this.setupGameMode();
 
     this.animate();
     this.spawnCats();
@@ -672,39 +650,33 @@ class CatSimulation {
         const quantity = Math.min(Math.max(1, catQuantity), 20);
         
         for (let i = 0; i < quantity; i++) {
-          let spawnedCat;
-          
           if (selectedBreed === 'random') {
             // Spawn a random cat breed
-            const randomVariant = this.catVariants[Math.floor(Math.random() * this.catVariants.length)];
-            spawnedCat = this.createCat(randomVariant);
+            this.spawnRandomCat();
           } else {
             // Find the variant corresponding to the selected breed
             const selectedVariant = this.catVariants.find(variant => variant.name === selectedBreed);
             
             if (selectedVariant) {
               // Create a cat with the specific breed
-              spawnedCat = this.createCat(selectedVariant);
-            }
-          }
-
-          if (spawnedCat) {
-            this.scene.add(spawnedCat);
-            this.cats.push(spawnedCat);
-            
-            // If crazy mode is active, make the new cat crazy
-            if (this.isCrazyModeActive) {
-              this.makeCatCrazy(spawnedCat);
-            }
-            
-            setTimeout(() => {
-              this.scene.remove(spawnedCat);
-              this.cats = this.cats.filter(c => c !== spawnedCat);
-              // Remove from crazy mode cats if applicable
-              if (this.crazyModeCats.has(spawnedCat)) {
-                this.crazyModeCats.delete(spawnedCat);
+              const cat = this.createCat(selectedVariant);
+              this.scene.add(cat);
+              this.cats.push(cat);
+              
+              // If crazy mode is active, make the new cat crazy
+              if (this.isCrazyModeActive) {
+                this.makeCatCrazy(cat);
               }
-            }, this.settings.despawnRate * 1000);
+              
+              setTimeout(() => {
+                this.scene.remove(cat);
+                this.cats = this.cats.filter(c => c !== cat);
+                // Remove from crazy mode cats if applicable
+                if (this.crazyModeCats.has(cat)) {
+                  this.crazyModeCats.delete(cat);
+                }
+              }, this.settings.despawnRate * 1000);
+            }
           }
         }
       }
@@ -717,6 +689,151 @@ class CatSimulation {
       crazyModeButton.textContent = this.isCrazyModeActive ? 'Calm Down' : 'Crazy Mode';
       crazyModeButton.classList.toggle('active');
     });
+  }
+
+  setupGameMode() {
+    const gameModeToggle = document.getElementById('gameModeToggle');
+    const gameScoreDisplay = document.getElementById('gameScoreDisplay');
+    const settingsInputs = document.querySelectorAll('#settingsTab input, #settingsTab select, #settingsTab button');
+    const startStopButton = document.getElementById('startStopButton');
+    const resetButton = document.getElementById('resetButton');
+    const spawnCatButton = document.getElementById('spawnCatButton');
+    const crazyModeButton = document.getElementById('crazyModeButton');
+
+    let gameModeCatMovementInterval = null;
+
+    gameModeToggle.addEventListener('change', (event) => {
+      this.isGameModeActive = event.target.checked;
+      gameScoreDisplay.classList.toggle('active', this.isGameModeActive);
+      
+      // Clear all existing cats first
+      this.cats.forEach(cat => {
+        this.scene.remove(cat);
+      });
+      this.cats = [];
+
+      if (this.isGameModeActive) {
+        // Disable all settings inputs
+        settingsInputs.forEach(input => {
+          if (input !== gameModeToggle) {
+            input.disabled = true;
+            input.classList.add('disabled');
+          }
+        });
+
+        // Disable buttons
+        startStopButton.disabled = true;
+        resetButton.disabled = true;
+        spawnCatButton.disabled = true;
+        crazyModeButton.disabled = true;
+
+        this.gameScore = 0;
+        document.getElementById('gameScore').textContent = this.gameScore;
+        
+        // Spawn a new cat for game mode
+        const randomVariant = this.catVariants[Math.floor(Math.random() * this.catVariants.length)];
+        const gameCat = this.createCat(randomVariant);
+        this.scene.add(gameCat);
+        this.cats.push(gameCat);
+
+        // Set up interval to move cat randomly every 5 seconds
+        gameModeCatMovementInterval = setInterval(() => {
+          if (this.isGameModeActive && this.cats.length > 0) {
+            const cat = this.cats[0];
+            // Random position within bounds
+            cat.position.set(
+              (Math.random() - 0.5) * 8,  // Wider x range
+              (Math.random() - 0.5) * 8,  // Wider y range
+              (Math.random() - 0.5) * 8   // Wider z range
+            );
+          }
+        }, 5000);
+        
+        // Add click/tap event listener to pop cats
+        this.renderer.domElement.addEventListener('click', this.handleCatPop.bind(this));
+        this.renderer.domElement.addEventListener('touchstart', this.handleCatPop.bind(this), { passive: false });
+      } else {
+        // Clear the movement interval
+        if (gameModeCatMovementInterval) {
+          clearInterval(gameModeCatMovementInterval);
+        }
+
+        // Re-enable all settings inputs
+        settingsInputs.forEach(input => {
+          input.disabled = false;
+          input.classList.remove('disabled');
+        });
+
+        // Re-enable buttons
+        startStopButton.disabled = false;
+        resetButton.disabled = false;
+        spawnCatButton.disabled = false;
+        crazyModeButton.disabled = false;
+
+        // Clear any remaining cats
+        this.cats.forEach(cat => {
+          this.scene.remove(cat);
+        });
+        this.cats = [];
+
+        // Remove event listeners when game mode is off
+        this.renderer.domElement.removeEventListener('click', this.handleCatPop);
+        this.renderer.domElement.removeEventListener('touchstart', this.handleCatPop);
+
+        // Restart normal cat spawning
+        this.spawnCats();
+      }
+    });
+  }
+
+  handleCatPop(event) {
+    // Prevent default touch behavior for mobile
+    if (event.type === 'touchstart') {
+      event.preventDefault();
+    }
+
+    // Calculate mouse/touch position
+    const mouse = new THREE.Vector2();
+    const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+    const clientY = event.clientY || (event.touches && event.touches[0].clientY);
+  
+    mouse.x = (clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+
+    // Update the raycaster with the camera and mouse position
+    this.raycaster.setFromCamera(mouse, this.camera);
+
+    // Check for intersections with cats
+    const intersects = this.raycaster.intersectObjects(this.cats, true);
+
+    if (intersects.length > 0) {
+      // Find the topmost parent (the cat group)
+      const cat = intersects[0].object.parent;
+      
+      // Animate pop and remove cat
+      this.popCat(cat);
+      
+      // Increment score
+      this.gameScore++;
+      document.getElementById('gameScore').textContent = this.gameScore;
+    }
+  }
+
+  popCat(cat) {
+    // Add pop animation
+    cat.children.forEach(child => {
+      child.material.transparent = true;
+      child.material.opacity = 1;
+    });
+  
+    // Remove cat from scene and cats array
+    this.scene.remove(cat);
+    this.cats = this.cats.filter(c => c !== cat);
+  
+    // Remove from crazy mode cats if applicable
+    if (this.crazyModeCats.has(cat)) {
+      this.crazyModeCats.delete(cat);
+    }
   }
 
   toggleCrazyMode() {
