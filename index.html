@@ -56,6 +56,13 @@
         <input type="range" id="catQuantity" min="1" max="20" value="1">
         <span id="catQuantityValue">1</span>
       </div>
+      <div class="setting game-mode-toggle">
+        <label>Game Mode:</label>
+        <label class="switch">
+          <input type="checkbox" id="gameModeToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
       <div class="setting control-buttons">
         <button id="startStopButton">Stop</button>
         <button id="resetButton">Reset</button>
@@ -63,6 +70,7 @@
         <button id="crazyModeButton">Crazy Mode</button>
       </div>
     </div>
+    
     <button id="settingsToggle">⚙️</button>
     
     <!-- New Custom Breed Button -->
@@ -88,11 +96,8 @@
         <button id="saveCustomBreedButton">Save Breed</button>
       </div>
     </div>
-    
-    <!-- Notification Container -->
-    <div id="notification" class="notification"></div>
-
-    <div id="versionText">V1.0.2</div>
+    <div id="gameScoreDisplay">Score: <span id="gameScore">0</span></div>
+    <div id="versionText">V1.0.1</div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
