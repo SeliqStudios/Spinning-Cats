@@ -7,4 +7,4 @@
 <br>
   github: https://github.com/SeliqStudios/Spinning-Cats
   <br>
-  youtube: https://www.youtube.com/@1stCoder
+  mobile version: https://seliqstudios.github.io/Spinning-Cats/Chub/
