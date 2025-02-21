@@ -2,6 +2,19 @@
 window.addEventListener("load", () => {
   const startupText = document.getElementById("startupText");
   const mainContent = document.getElementById("mainContent");
+  const backgroundColorInput = document.getElementById('backgroundColor');
+
+  // Set initial background color based on saved preference (if any)
+  const savedBackgroundColor = localStorage.getItem('backgroundColor');
+  if (savedBackgroundColor) {
+    document.body.style.backgroundColor = savedBackgroundColor;
+    backgroundColorInput.value = savedBackgroundColor;
+  }
+
+  // Save background color preference when changed
+  backgroundColorInput.addEventListener('input', (e) => {
+    localStorage.setItem('backgroundColor', e.target.value);
+  });
 
   // Fade-in text effect
   setTimeout(() => {
@@ -27,9 +40,30 @@ window.addEventListener('resize', () => {
 class FPSCounter {
   constructor() {
     this.element = document.getElementById('fpsCounter');
+    this.settingsElement = document.getElementById('settingsFpsCounter');
+    this.displayToggle = document.getElementById('fpsDisplayToggle');
     this.frames = 0;
     this.lastTime = performance.now();
     this.startCountingFPS();
+
+    // Setup visibility toggle
+    if (this.displayToggle) {
+      this.displayToggle.addEventListener('change', () => {
+        const isChecked = this.displayToggle.checked;
+        this.element.style.display = isChecked ? 'block' : 'none';
+        
+        // Optionally save preference in localStorage
+        localStorage.setItem('fpsDisplayVisible', isChecked);
+      });
+
+      // Restore previous visibility preference
+      const savedVisibility = localStorage.getItem('fpsDisplayVisible');
+      if (savedVisibility !== null) {
+        const isVisible = savedVisibility === 'true';
+        this.displayToggle.checked = isVisible;
+        this.element.style.display = isVisible ? 'block' : 'none';
+      }
+    }
   }
 
   startCountingFPS() {
@@ -39,7 +73,14 @@ class FPSCounter {
 
       if (elapsed >= 1000) {
         const fps = Math.round((this.frames * 1000) / elapsed);
-        this.element.textContent = `FPS: ${fps}`;
+        
+        // Update both FPS counters
+        if (this.element) {
+          this.element.textContent = `FPS: ${fps}`;
+        }
+        if (this.settingsElement) {
+          this.settingsElement.textContent = fps;
+        }
         
         this.frames = 0;
         this.lastTime = now;
