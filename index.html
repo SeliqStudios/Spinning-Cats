@@ -1,113 +1,169 @@
-<html>
+<html lang="en">
 <head>
-  <title>Spinning Cats</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spinning Cats Simulation</title>
+    
+    <!-- Mobile Redirection -->
+    <script>
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isTablet = /iPad/i.test(navigator.userAgent);
+        
+        if (isMobileDevice || isTablet) {
+            window.location.href = 'https://seliqstudios.github.io/Spinning-Cats/Chub';
+        }
+    </script>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="startupText">SELIQ PRESENTS</div>
-
-  <div id="mainContent">
-    <div id="info">In here you watch cats spinning</div>
+    <div id="startupText">SELIQ PRESENTS</div>
     
-    <div id="credit">created by Seliq Studios</div>
-    
-    <div id="fpsCounter">FPS: 0</div>
+    <div id="mainContent">
+        <button id="settingsToggle">⚙️</button>
+        
+        <div id="settingsTab" class="settings-tab">
+            <div class="settings-section">
+                <h3>Performance</h3>
+                <div class="setting">
+                    <label>Current FPS:</label>
+                    <span id="settingsFpsCounter">--</span>
+                </div>
+                <div class="setting">
+                    <label for="fpsDisplayToggle">Show FPS Counter:</label>
+                    <label class="switch">
+                        <input type="checkbox" id="fpsDisplayToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting">
+                    <label for="maxCatsInput">Max Cats in Canvas:</label>
+                    <input type="range" id="maxCatsInput" min="1" max="100" step="1" value="50">
+                    <span id="maxCatsValue">50</span>
+                </div>
+            </div>
 
-    <div id="settingsTab" class="settings-tab">
-      <h2>Settings</h2>
-      <div class="setting">
-        <label for="spawnRate">Spawn Rate (cats/second):</label>
-        <input type="range" id="spawnRate" min="0.1" max="5" step="0.1" value="1">
-        <span id="spawnRateValue">1</span>
-      </div>
-      <div class="setting">
-        <label for="speedRate">Cat Movement Speed:</label>
-        <input type="range" id="speedRate" min="0.01" max="0.1" step="0.01" value="0.01">
-        <span id="speedRateValue">0.01</span>
-      </div>
-      <div class="setting">
-        <label for="spinRate">Spinning Rate:</label>
-        <input type="range" id="spinRate" min="0.001" max="0.05" step="0.001" value="0.01">
-        <span id="spinRateValue">0.01</span>
-      </div>
-      <div class="setting">
-        <label for="despawnRate">Despawn Time (seconds):</label>
-        <input type="range" id="despawnRate" min="5" max="60" step="1" value="30">
-        <span id="despawnRateValue">30</span>
-      </div>
-      <div class="setting">
-        <label for="catBreedSelect">Spawn Specific Cat Breed:</label>
-        <select id="catBreedSelect">
-          <option value="random">Random Breed</option>
-          <option value="Tabby">Tabby</option>
-          <option value="Siamese">Siamese</option>
-          <option value="Persian">Persian</option>
-          <option value="Bengal">Bengal</option>
-          <option value="Sphynx">Sphynx</option>
-          <option value="Scottish Fold">Scottish Fold</option>
-          <option value="Maine Coon">Maine Coon</option>
-          <option value="Russian Blue">Russian Blue</option>
-          <option value="Ragdoll">Ragdoll</option>
-          <option value="British Shorthair">British Shorthair</option>
-        </select>
-      </div>
-      <div class="setting">
-        <label for="catQuantity">Number of Cats to Spawn:</label>
-        <input type="range" id="catQuantity" min="1" max="20" value="1">
-        <span id="catQuantityValue">1</span>
-      </div>
-      <div class="setting game-mode-toggle">
-        <label>Game Mode:</label>
-        <label class="switch">
-          <input type="checkbox" id="gameModeToggle">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="setting control-buttons">
-        <button id="startStopButton">Stop</button>
-        <button id="resetButton">Reset</button>
-        <button id="spawnCatButton">Spawn Cat</button>
-        <button id="crazyModeButton">Crazy Mode</button>
-      </div>
+            <div class="settings-section">
+                <h3>Simulation Controls</h3>
+                
+                <div class="setting">
+                    <label for="spawnRate">Spawn Rate (cats/sec):</label>
+                    <input type="range" id="spawnRate" min="0.1" max="5" step="0.1" value="1">
+                    <span id="spawnRateValue">1</span>
+                </div>
+                
+                <div class="setting">
+                    <label for="speedRate">Speed Rate:</label>
+                    <input type="range" id="speedRate" min="0" max="0.1" step="0.001" value="0.01">
+                    <span id="speedRateValue">0.01</span>
+                </div>
+                
+                <div class="setting">
+                    <label for="spinRate">Spin Rate:</label>
+                    <input type="range" id="spinRate" min="0" max="0.1" step="0.001" value="0.01">
+                    <span id="spinRateValue">0.01</span>
+                </div>
+                
+                <div class="setting">
+                    <label for="despawnRate">Despawn Time (sec):</label>
+                    <input type="range" id="despawnRate" min="10" max="120" step="1" value="30">
+                    <span id="despawnRateValue">30</span>
+                </div>
+                
+                <div class="setting">
+                    <label for="catSize">Cat Size:</label>
+                    <input type="range" id="catSize" min="0.5" max="2" step="0.1" value="1">
+                    <span id="catSizeValue">1.0</span>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Cat Spawning</h3>
+                
+                <div class="setting">
+                    <label for="catBreedSelect">Cat Breed:</label>
+                    <select id="catBreedSelect">
+                        <option value="random">Random</option>
+                        <option value="Tabby">Tabby</option>
+                        <option value="Siamese">Siamese</option>
+                        <option value="Persian">Persian</option>
+                        <option value="Bengal">Bengal</option>
+                        <option value="Sphynx">Sphynx</option>
+                        <option value="Scottish Fold">Scottish Fold</option>
+                        <option value="Maine Coon">Maine Coon</option>
+                        <option value="Russian Blue">Russian Blue</option>
+                        <option value="Ragdoll">Ragdoll</option>
+                        <option value="British Shorthair">British Shorthair</option>
+                    </select>
+                </div>
+                
+                <div class="setting">
+                    <label for="catQuantity">Cat Quantity:</label>
+                    <input type="range" id="catQuantity" min="1" max="20" step="1" value="1">
+                    <span id="catQuantityValue">1</span>
+                </div>
+                
+                <div class="control-buttons">
+                    <button id="spawnCatButton">Spawn Cats</button>
+                    <button id="startStopButton">Stop</button>
+                    <button id="resetButton">Reset</button>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Custom Cat Breed</h3>
+                
+                <div class="setting">
+                    <label for="customBreedName">Breed Name:</label>
+                    <input type="text" id="customBreedName" placeholder="Enter breed name">
+                </div>
+                
+                <div class="setting">
+                    <label for="customBreedColor">Breed Color:</label>
+                    <input type="color" id="customBreedColor" value="#A0522D">
+                </div>
+                
+                <div class="setting">
+                    <label for="customEyeColor">Eye Color:</label>
+                    <input type="color" id="customEyeColor" value="#00FF00">
+                </div>
+                
+                <button id="saveCustomBreedButton" class="full-width-button">Save Custom Breed</button>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Visual Settings</h3>
+                
+                <div class="setting">
+                    <label for="backgroundColor">Background Color:</label>
+                    <input type="color" id="backgroundColor" value="#000000">
+                </div>
+                
+                <div class="game-mode-toggle setting">
+                    <label>Game Mode:</label>
+                    <label class="switch">
+                        <input type="checkbox" id="gameModeToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <button id="crazyModeButton">Crazy Mode</button>
+            </div>
+        </div>
+        
+        <div id="info">Drag cats, click to interact!</div>
+        <div id="credit">Created By Seliq Studios</div>
+        <div id="fpsCounter">FPS: --</div>
+        <div id="gameScoreDisplay">Score: <span id="gameScore">0</span></div>
+        <div id="versionText">v1.0.4</div>
     </div>
-    
-    <button id="settingsToggle">⚙️</button>
-    
-    <!-- New Custom Breed Button -->
-    <button id="customBreedButton">🐱</button>
-    
-    <!-- New Custom Breed Modal -->
-    <div id="customBreedModal" class="modal">
-      <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <h2>Create Custom Cat Breed</h2>
-        <div class="setting">
-          <label for="customBreedName">Breed Name:</label>
-          <input type="text" id="customBreedName" placeholder="Enter breed name">
-        </div>
-        <div class="setting">
-          <label for="customBreedColor">Fur Color:</label>
-          <input type="color" id="customBreedColor" value="#A0522D">
-        </div>
-        <div class="setting">
-          <label for="customEyeColor">Eye Color:</label>
-          <input type="color" id="customEyeColor" value="#00FF00">
-        </div>
-        <button id="saveCustomBreedButton">Save Breed</button>
-      </div>
-    </div>
-    <div id="gameScoreDisplay">Score: <span id="gameScore">0</span></div>
-    <div id="versionText">V1.0.3</div>
-  </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="cats.js"></script>
-  <script src="main.js"></script>
-  <script>
-  if (/Mobi|Android|iPhone|iPad|iPod|Tablet/i.test(navigator.userAgent)) {
-    window.location.href = "https://seliqstudios.github.io/Spinning-Cats/Chub";
-  }
-  </script>
-  
+    <!-- Scripts -->
+    <script src="cats.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
