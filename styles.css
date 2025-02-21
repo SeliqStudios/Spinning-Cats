@@ -1,292 +1,210 @@
-body, html {
+/* Global Reset and Base Styles */
+* {
   margin: 0;
   padding: 0;
-  height: 100%;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+body {
   background-color: black;
+  color: white;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: white;
-  font-family: Arial, sans-serif;
-  overflow: hidden;
+  height: 100vh;
+  margin: 0;
 }
 
+/* Startup Screen */
 #startupText {
-  font-size: 2em;
-  text-align: center;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  color: white;
   opacity: 0;
-  transition: opacity 1s ease-in-out;
-}
-
-.fade-in {
-  opacity: 1 !important;
-}
-
-#mainContent {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-#info {
-  position: absolute;
-  top: 10px;
-  width: 100%;
-  text-align: center;
-  color: white;
-  font-family: Arial, sans-serif;
-  pointer-events: none;
-}
-
-#credit {
-  position: absolute;
-  bottom: 10px;
-  width: 100%;
-  text-align: center;
-  color: white;
-  font-family: Arial, sans-serif;
-  pointer-events: none;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.settings-tab {
-  position: absolute;
-  top: 10px;
-  right: -300px;
-  width: 250px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 20px;
-  border-radius: 10px;
-  transition: right 0.3s ease;
+  transition: opacity 2s ease;
   z-index: 1000;
 }
 
-.settings-tab.open {
+#startupText.fade-in {
+  opacity: 1;
+}
+
+/* Main Content */
+#mainContent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+
+/* Settings Toggle */
+#settingsToggle {
+  position: absolute;
+  top: 10px;
   right: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  z-index: 100;
+}
+
+#settingsToggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Settings Tab */
+.settings-tab {
+  position: absolute;
+  top: 0;
+  right: -300px;
+  width: 300px;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  transition: right 0.3s ease;
+  overflow-y: auto;
+  padding: 20px;
+  z-index: 50;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.2) transparent;
+}
+
+.settings-tab.open {
+  right: 0;
+}
+
+.settings-tab::-webkit-scrollbar {
+  width: 8px;
+}
+
+.settings-tab::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.settings-tab::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,0.2);
+  border-radius: 4px;
+}
+
+.settings-section {
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 15px;
+}
+
+.settings-section h3 {
+  margin-bottom: 15px;
+  color: #999;
+  text-transform: uppercase;
+  font-size: 0.9rem;
 }
 
 .setting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 15px;
 }
 
 .setting label {
-  display: block;
-  margin-bottom: 5px;
+  font-size: 0.9rem;
+  color: #ccc;
 }
 
-.setting input {
-  width: 100%;
+.setting input[type="range"] {
+  flex-grow: 1;
+  margin: 0 10px;
 }
 
-.setting select {
-  width: 100%;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 5px;
-  margin-top: 5px;
-  border-radius: 5px;
-}
-
-.setting select option {
-  background-color: black;
-  color: white;
-}
-
-.setting input[type="number"],
-#customBreedName,
-#customBreedColor,
-#customEyeColor {
-  width: 100%;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 5px;
-  margin-top: 5px;
-  border-radius: 5px;
-}
-
-#settingsToggle {
-  position: absolute;
-  left: 10px;
-  top: 10px;
-  background: rgba(0, 0, 0, 0.7);
+.setting input[type="color"] {
+  width: 50px;
+  height: 30px;
   border: none;
-  color: white;
-  padding: 15px 20px;
-  border-radius: 10px;
+  background: none;
   cursor: pointer;
-  font-size: 24px;
-  transition: transform 0.2s ease;
-}
-
-#settingsToggle:hover {
-  transform: scale(1.1);
-}
-
-#fpsCounter {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  color: white;
-  font-family: Arial, sans-serif;
-  font-size: 16px;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 5px 10px;
-  border-radius: 5px;
 }
 
 .control-buttons {
   display: flex;
   justify-content: space-between;
-  margin-top: 15px;
 }
 
 .control-buttons button {
-  width: 30%;
+  flex-grow: 1;
+  margin: 0 5px;
   padding: 10px;
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  border-radius: 5px;
+  color: white;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin: 0 2px;
+  transition: background 0.3s ease;
 }
 
 .control-buttons button:hover {
-  background-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
 }
 
+.full-width-button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.full-width-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Crazy Mode Button */
 #crazyModeButton {
+  width: 100%;
+  background-color: transparent;
+  border: 2px solid rgba(255, 0, 0, 0.5);
+  color: white;
+  transition: all 0.3s ease;
+  padding: 8px 15px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+#crazyModeButton:hover {
   background-color: rgba(255, 0, 0, 0.2);
-  transition: background-color 0.3s ease;
+  border-color: rgba(255, 0, 0, 0.7);
 }
 
 #crazyModeButton.active {
-  background-color: rgba(255, 0, 0, 0.5);
+  background-color: rgba(255, 0, 0, 0.3);
+  border-color: red;
+  color: red;
 }
 
-#versionText {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  color: white;
-  font-family: Arial, sans-serif;
-  font-size: 14px;
-  opacity: 0.5;
-}
-
-#customBreedButton {
-  position: absolute;
-  left: 10px;
-  top: 60px;
-  background: rgba(0, 0, 0, 0.7);
-  border: none;
-  color: white;
-  padding: 15px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 24px;
-  transition: transform 0.2s ease;
-}
-
-#customBreedButton:hover {
-  transform: scale(1.1);
-}
-
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 2000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0,0,0,0.8);
-}
-
-.modal-content {
-  background-color: rgba(0, 0, 0, 0.9);
-  margin: 15% auto;
-  padding: 20px;
-  border-radius: 10px;
-  width: 80%;
-  max-width: 500px;
-  color: white;
-  position: relative;
-}
-
-.close-modal {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.close-modal:hover {
-  color: white;
-}
-
-.video-mode #settingsToggle,
-.video-mode #settingsTab,
-.video-mode #info,
-.video-mode #credit,
-.video-mode #fpsCounter,
-.video-mode #versionText,
-.video-mode #customBreedButton,
-.video-mode #customBreedModal {
-  display: none !important;
-}
-#gameScoreDisplay {
-  position: absolute;
-  top: 50px;
-  right: 10px;
-  color: white;
-  font-family: Arial, sans-serif;
-  font-size: 24px;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 10px;
-  border-radius: 5px;
-  display: none;
-}
-
-#gameScoreDisplay.active {
-  display: block;
-}
-
-.pop-animation {
-  animation: pop 0.3s ease-out;
-}
-
-@keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(0); opacity: 0; }
-}
-
-.settings-tab .game-mode-toggle {
-  margin-top: 15px;
+/* Game Mode Toggle */
+.game-mode-toggle {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-}
-
-.settings-tab .game-mode-toggle label {
-  margin-right: 10px;
 }
 
 .switch {
   position: relative;
   display: inline-block;
-  width: 60px;
-  height: 34px;
+  width: 50px;
+  height: 24px;
 }
 
 .switch input {
@@ -302,7 +220,7 @@ body, html {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: rgba(255, 255, 255, 0.1);
   transition: .4s;
   border-radius: 34px;
 }
@@ -310,8 +228,8 @@ body, html {
 .slider:before {
   position: absolute;
   content: "";
-  height: 26px;
-  width: 26px;
+  height: 16px;
+  width: 16px;
   left: 4px;
   bottom: 4px;
   background-color: white;
@@ -327,10 +245,94 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
-input.disabled, 
-select.disabled, 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
+/* Modals */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: rgba(0, 0, 0, 0.8);
+  margin: 15% auto;
+  padding: 20px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 500px;
+  color: white;
+}
+
+.close-modal {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-modal:hover {
+  color: white;
+}
+
+#customBreedModal {
+  display: none !important;
+}
+
+/* UI Information Elements */
+#info, #credit, #versionText {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+}
+
+#info {
+  bottom: 10px;
+  left: 10px;
+}
+
+#credit {
+  bottom: 10px;
+  right: 10px;
+}
+
+#versionText {
+  top: 10px;
+  left: 10px;
+}
+
+#fpsCounter {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+}
+
+#gameScoreDisplay {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 5px 10px;
+  border-radius: 5px;
+  display: none;
+}
+
+#gameScoreDisplay.active {
+  display: block;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+  .settings-tab {
+    width: 100%;
+    right: -100%;
+  }
 }
