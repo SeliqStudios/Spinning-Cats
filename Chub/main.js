@@ -36,28 +36,38 @@ window.addEventListener('resize', () => {
 });
 
 function initControls() {
-  const controls = {
-    spawnRate: document.getElementById('spawnRate'),
-    movementSpeed: document.getElementById('movementSpeed'),
-    spinRate: document.getElementById('spinRate'),
-    despawnTime: document.getElementById('despawnTime'),
-    catBreed: document.getElementById('catBreed'),
-    spawnCount: document.getElementById('spawnCount'),
-    stopBtn: document.getElementById('stopBtn'),
-    resetBtn: document.getElementById('resetBtn'),
-    spawnBtn: document.getElementById('spawnBtn'),
-    crazyBtn: document.getElementById('crazyBtn'),
-    settingsBtn: document.getElementById('settingsButton'),
-    closeSettingsBtn: document.getElementById('closeSettings'),
-    controlsPanel: document.getElementById('controls')
-  };
+  const controlIds = [
+    'spawnRate', 'movementSpeed', 'spinRate', 'despawnTime', 'catBreed', 
+    'spawnCount', 'catSize', 'stopBtn', 'resetBtn', 'spawnBtn', 
+    'crazyBtn', 'settingsButton', 'closeSettings', 'controls'
+  ];
+
+  const controls = {};
+  const missingControls = [];
+
+  // Dynamically populate controls object and track missing elements
+  controlIds.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      controls[id] = element;
+    } else {
+      missingControls.push(id);
+    }
+  });
+
+  // Log missing controls for debugging
+  if (missingControls.length > 0) {
+    console.error('Missing DOM elements:', missingControls);
+    return; // Exit the function if critical elements are missing
+  }
 
   const valueDisplays = {
     spawnRate: document.getElementById('spawnRateValue'),
     movementSpeed: document.getElementById('movementSpeedValue'),
     spinRate: document.getElementById('spinRateValue'),
     despawnTime: document.getElementById('despawnTimeValue'),
-    spawnCount: document.getElementById('spawnCountValue')
+    spawnCount: document.getElementById('spawnCountValue'),
+    catSize: document.getElementById('catSizeValue')  
   };
 
   // Add breed creator functionality
@@ -107,7 +117,8 @@ function initControls() {
       spawnRate: 1000 / parseFloat(controls.spawnRate.value),
       movementSpeed: parseFloat(controls.movementSpeed.value),
       spinRate: parseFloat(controls.spinRate.value),
-      catLifetime: parseFloat(controls.despawnTime.value) * 1000
+      catLifetime: parseFloat(controls.despawnTime.value) * 1000,
+      catSize: parseFloat(controls.catSize.value)  
     });
   }
 
@@ -121,7 +132,7 @@ function initControls() {
   }
 
   // Add event listeners to all range inputs
-  ['spawnRate', 'movementSpeed', 'spinRate', 'despawnTime', 'spawnCount'].forEach(id => {
+  ['spawnRate', 'movementSpeed', 'spinRate', 'despawnTime', 'spawnCount', 'catSize'].forEach(id => {
     controls[id].addEventListener('input', () => {
       updateValueDisplay(id, controls[id].value);
       updateSettings();
@@ -152,12 +163,12 @@ function initControls() {
   });
 
   // Add settings toggle functionality
-  controls.settingsBtn.addEventListener('click', () => {
-    controls.controlsPanel.classList.add('visible');
+  controls.settingsButton.addEventListener('click', () => {
+    controls.controls.classList.toggle('visible');
   });
 
-  controls.closeSettingsBtn.addEventListener('click', () => {
-    controls.controlsPanel.classList.remove('visible');
+  controls.closeSettings.addEventListener('click', () => {
+    controls.controls.classList.remove('visible');
   });
 
   // Initialize with default values
