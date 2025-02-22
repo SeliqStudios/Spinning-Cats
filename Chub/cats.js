@@ -13,7 +13,8 @@ const CatSimulation = {
     movementSpeed: 0.01,
     spinRate: 0.01,
     spawnRate: 1000,
-    catLifetime: 30000
+    catLifetime: 30000,
+    catSize: 1
   },
   catVariants: [
     {name: 'Tabby', color: 0xA0522D, eyeColor: 0x00FF00},
@@ -74,75 +75,76 @@ const CatSimulation = {
 
   createCat(variant) {
     const group = new THREE.Group();
+    const sizeMultiplier = this.settings.catSize;
 
     // Body
-    const bodyGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+    const bodyGeometry = new THREE.SphereGeometry(0.5 * sizeMultiplier, 32, 32);
     const bodyMaterial = new THREE.MeshPhongMaterial({color: variant.color});
     const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
     body.scale.set(1, 0.8, 1.2);
     group.add(body);
 
     // Head
-    const headGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+    const headGeometry = new THREE.SphereGeometry(0.3 * sizeMultiplier, 32, 32);
     const headMaterial = new THREE.MeshPhongMaterial({color: variant.color});
     const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.set(0.5, 0.3, 0);
+    head.position.set(0.5 * sizeMultiplier, 0.3 * sizeMultiplier, 0);
     head.scale.set(1, 0.9, 0.9);
     group.add(head);
 
     // Eyes
-    const eyeGeometry = new THREE.SphereGeometry(0.05, 32, 32);
+    const eyeGeometry = new THREE.SphereGeometry(0.05 * sizeMultiplier, 32, 32);
     const eyeMaterial = new THREE.MeshPhongMaterial({color: variant.eyeColor});
     const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    leftEye.position.set(0.75, 0.35, 0.12);
+    leftEye.position.set(0.75 * sizeMultiplier, 0.35 * sizeMultiplier, 0.12 * sizeMultiplier);
     group.add(leftEye);
 
     const rightEye = leftEye.clone();
-    rightEye.position.set(0.75, 0.35, -0.12);
+    rightEye.position.set(0.75 * sizeMultiplier, 0.35 * sizeMultiplier, -0.12 * sizeMultiplier);
     group.add(rightEye);
 
     // Pupils
-    const pupilGeometry = new THREE.SphereGeometry(0.02, 32, 32);
+    const pupilGeometry = new THREE.SphereGeometry(0.02 * sizeMultiplier, 32, 32);
     const pupilMaterial = new THREE.MeshPhongMaterial({color: 0x000000});
     const leftPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
-    leftPupil.position.set(0.78, 0.35, 0.12);
+    leftPupil.position.set(0.78 * sizeMultiplier, 0.35 * sizeMultiplier, 0.12 * sizeMultiplier);
     group.add(leftPupil);
 
     const rightPupil = leftPupil.clone();
-    rightPupil.position.set(0.78, 0.35, -0.12);
+    rightPupil.position.set(0.78 * sizeMultiplier, 0.35 * sizeMultiplier, -0.12 * sizeMultiplier);
     group.add(rightPupil);
 
     // Ears
-    const earGeometry = new THREE.ConeGeometry(0.1, 0.2, 32);
+    const earGeometry = new THREE.ConeGeometry(0.1 * sizeMultiplier, 0.2 * sizeMultiplier, 32);
     const leftEar = new THREE.Mesh(earGeometry, bodyMaterial);
-    leftEar.position.set(0.6, 0.5, 0.15);
+    leftEar.position.set(0.6 * sizeMultiplier, 0.5 * sizeMultiplier, 0.15 * sizeMultiplier);
     leftEar.rotation.z = -Math.PI / 4;
     group.add(leftEar);
 
     const rightEar = leftEar.clone();
-    rightEar.position.set(0.6, 0.5, -0.15);
+    rightEar.position.set(0.6 * sizeMultiplier, 0.5 * sizeMultiplier, -0.15 * sizeMultiplier);
     rightEar.rotation.z = -Math.PI / 4;
     group.add(rightEar);
 
     // Tail
     const tailCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-0.5, 0, 0),
-      new THREE.Vector3(-0.7, 0.2, 0),
-      new THREE.Vector3(-0.9, 0.3, 0),
-      new THREE.Vector3(-0.8, 0.4, 0)
+      new THREE.Vector3(-0.5 * sizeMultiplier, 0, 0),
+      new THREE.Vector3(-0.7 * sizeMultiplier, 0.2 * sizeMultiplier, 0),
+      new THREE.Vector3(-0.9 * sizeMultiplier, 0.3 * sizeMultiplier, 0),
+      new THREE.Vector3(-0.8 * sizeMultiplier, 0.4 * sizeMultiplier, 0)
     ]);
-    const tailGeometry = new THREE.TubeGeometry(tailCurve, 20, 0.04, 8, false);
+    const tailGeometry = new THREE.TubeGeometry(tailCurve, 20, 0.04 * sizeMultiplier, 8, false);
     const tail = new THREE.Mesh(tailGeometry, bodyMaterial);
     group.add(tail);
 
     // Paws
-    const pawGeometry = new THREE.SphereGeometry(0.08, 32, 32);
+    const pawGeometry = new THREE.SphereGeometry(0.08 * sizeMultiplier, 32, 32);
     const pawMaterial = new THREE.MeshPhongMaterial({color: variant.color});
     const positions = [
-      [-0.3, -0.5, 0.2],
-      [-0.3, -0.5, -0.2],
-      [0.3, -0.5, 0.2],
-      [0.3, -0.5, -0.2]
+      [-0.3 * sizeMultiplier, -0.5 * sizeMultiplier, 0.2 * sizeMultiplier],
+      [-0.3 * sizeMultiplier, -0.5 * sizeMultiplier, -0.2 * sizeMultiplier],
+      [0.3 * sizeMultiplier, -0.5 * sizeMultiplier, 0.2 * sizeMultiplier],
+      [0.3 * sizeMultiplier, -0.5 * sizeMultiplier, -0.2 * sizeMultiplier]
     ];
     positions.forEach(pos => {
       const paw = new THREE.Mesh(pawGeometry, pawMaterial);
