@@ -8,3 +8,5 @@
   github: https://github.com/SeliqStudios/Spinning-Cats
   <br>
   mobile version: https://seliqstudios.github.io/Spinning-Cats/Chub/
+<br>
+credits: https://seliqstudios.github.io/Spinning-Cats/Other/credits.html
