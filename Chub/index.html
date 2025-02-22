@@ -1,101 +1,104 @@
-<html>
-<head>
-  <title>Spinning Cat - Chub Edition</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" href="styles.css">
+<html lang="en">
+<
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spinning Cat - Chub Edition</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-  <div id="device-message"></div>
-  <div id="mobile-content">
-    <div id="startupText">SELIQ PRESENTS</div>
-    <div id="mainContent">
-      <button id="settingsButton">⚙️ Settings</button>
-      <div id="controls">
-        <button id="closeSettings">×</button>
-        <div class="control-group">
-          <label>Spawn Rate (cats/second):</label>
-          <input type="range" id="spawnRate" value="1" min="0.1" max="10" step="0.1">
-          <div class="value-display" id="spawnRateValue">1.0</div>
-        </div>
-        
-        <div class="control-group">
-          <label>Cat Movement Speed:</label>
-          <input type="range" id="movementSpeed" value="0.01" min="0.001" max="0.1" step="0.001">
-          <div class="value-display" id="movementSpeedValue">0.010</div>
-        </div>
-        
-        <div class="control-group">
-          <label>Spinning Rate:</label>
-          <input type="range" id="spinRate" value="0.01" min="0.001" max="0.1" step="0.001">
-          <div class="value-display" id="spinRateValue">0.010</div>
-        </div>
-        
-        <div class="control-group">
-          <label>Despawn Time (seconds):</label>
-          <input type="range" id="despawnTime" value="30" min="1" max="300" step="1">
-          <div class="value-display" id="despawnTimeValue">30</div>
-        </div>
-        
-        <div class="control-group">
-          <label>Spawn Specific Cat Breed:</label>
-          <select id="catBreed">
-            <option value="random">Random Breed</option>
-            <option value="0">Tabby</option>
-            <option value="1">Siamese</option>
-            <option value="2">Persian</option>
-            <option value="3">Bengal</option>
-            <option value="4">Sphynx</option>
-            <option value="5">Scottish Fold</option>
-            <option value="6">Maine Coon</option>
-            <option value="7">Russian Blue</option>
-            <option value="8">Ragdoll</option>
-            <option value="9">British Shorthair</option>
-          </select>
-        </div>
-        
-        <div class="control-group">
-          <label>Number of Cats to Spawn:</label>
-          <input type="range" id="spawnCount" value="1" min="1" max="50" step="1">
-          <div class="value-display" id="spawnCountValue">1</div>
-        </div>
-        
-        <div class="control-group">
-          <div class="button-group">
-            <button id="stopBtn">Stop</button>
-            <button id="resetBtn">Reset</button>
-            <button id="spawnBtn">Spawn Cat</button>
-            <button id="crazyBtn">Crazy Mode</button>
-          </div>
-        </div>
-        
-        <div class="control-group">
-          <div class="button-group">
-            <button id="createBreedBtn">Create New Breed</button>
-          </div>
-        </div>
-      </div>
-      
-      <div id="breedCreator">
-        <h3 style="color: white; margin-top: 0;">Create New Breed</h3>
-        <input type="text" id="breedName" placeholder="Breed Name">
-        <label style="color: white;">Cat Color:</label>
-        <input type="color" id="breedColor" value="#A0522D">
-        <label style="color: white;">Eye Color:</label>
-        <input type="color" id="breedEyeColor" value="#00FF00">
-        <div class="breed-buttons">
-          <button class="cancel" id="cancelBreed">Cancel</button>
-          <button class="create" id="saveBreed">Create</button>
-        </div>
-      </div>
-
-      <div id="crazyMeter">
-        <div id="crazyFill"></div>
-      </div>
+    <div id="device-message">
+        This experience is only available on mobile devices and tablets. Please visit on a mobile device (For tablets please make your screen potrait.)
     </div>
-  </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="cats.js"></script>
-  <script src="main.js"></script>
+    <div id="mobile-content">
+        <div id="startupText">Spinning Cat - Chub Edition</div>
+        
+        <button id="settingsButton">⚙️</button>
+        
+        <div id="mainContent"></div>
+        
+        <div id="controls">
+            <button id="closeSettings">×</button>
+            
+            <div class="control-group">
+                <label for="catBreed">Cat Breed</label>
+                <select id="catBreed">
+                    <option value="random">Random</option>
+                    <option value="0">Tabby</option>
+                    <option value="1">Siamese</option>
+                    <option value="2">Persian</option>
+                    <option value="3">Bengal</option>
+                    <option value="4">Sphynx</option>
+                    <option value="5">Scottish Fold</option>
+                    <option value="6">Maine Coon</option>
+                    <option value="7">Russian Blue</option>
+                    <option value="8">Ragdoll</option>
+                    <option value="9">British Shorthair</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="spawnRate">Spawn Rate <span id="spawnRateValue">1.0</span></label>
+                <input type="range" id="spawnRate" min="0.1" max="10" step="0.1" value="1.0">
+            </div>
+
+            <div class="control-group">
+                <label for="movementSpeed">Movement Speed <span id="movementSpeedValue">0.01</span></label>
+                <input type="range" id="movementSpeed" min="0" max="0.1" step="0.001" value="0.01">
+            </div>
+
+            <div class="control-group">
+                <label for="spinRate">Spin Rate <span id="spinRateValue">0.01</span></label>
+                <input type="range" id="spinRate" min="0" max="0.1" step="0.001" value="0.01">
+            </div>
+
+            <div class="control-group">
+                <label for="despawnTime">Despawn Time <span id="despawnTimeValue">30.0</span>s</label>
+                <input type="range" id="despawnTime" min="5" max="60" step="1" value="30">
+            </div>
+
+            <div class="control-group">
+                <label for="catSize">Cat Size <span id="catSizeValue">1.0</span></label>
+                <input type="range" id="catSize" min="0.5" max="2" step="0.1" value="1.0">
+            </div>
+
+            <div class="control-group">
+                <label for="spawnCount">Spawn Count <span id="spawnCountValue">1</span></label>
+                <input type="range" id="spawnCount" min="1" max="10" step="1" value="1">
+            </div>
+
+            <div class="button-group">
+                <button id="spawnBtn">Spawn Cat</button>
+                <button id="stopBtn">Stop</button>
+                <button id="resetBtn">Reset</button>
+                <button id="crazyBtn">Crazy Mode</button>
+                <button id="createBreedBtn">Create Breed</button>
+            </div>
+        </div>
+
+        <div id="breedCreator">
+            <input type="text" id="breedName" placeholder="Breed Name">
+            <label for="breedColor">Breed Color</label>
+            <input type="color" id="breedColor" value="#A0522D">
+            <label for="breedEyeColor">Eye Color</label>
+            <input type="color" id="breedEyeColor" value="#00FF00">
+            <div class="breed-buttons">
+                <button id="saveBreed" class="create">Save</button>
+                <button id="cancelBreed" class="cancel">Cancel</button>
+            </div>
+        </div>
+
+        <div id="crazyMeter">
+            <div id="crazyFill"></div>
+        </div>
+    </div>
+
+    <div id="info">
+        <div id="fpsCounter">FPS: 0</div>
+    </div>
+
+    <script src="main.js"></script>
+    <script src="cats.js"></script>
 </body>
-                                                                                    </html>
+</html>
