@@ -17,6 +17,36 @@ body {
   margin: 0;
 }
 
+body.debug-mode {
+  outline: 2px solid red;
+}
+
+body.debug-mode * {
+  outline: 1px solid rgba(255,0,0,0.2);
+}
+
+body.high-contrast-mode {
+  background-color: black !important;
+  color: white !important;
+}
+
+body.high-contrast-mode canvas {
+  filter: contrast(200%) brightness(150%);
+}
+
+body.video-mode {
+  background-color: transparent !important;
+}
+
+body.video-mode #mainContent {
+  background: none;
+}
+
+body.video-mode .settings-tab {
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+}
+
 /* Startup Screen */
 #startupText {
   position: fixed;
@@ -133,6 +163,19 @@ body {
   cursor: pointer;
 }
 
+.settings-section .setting[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 5px;
+  border-radius: 3px;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  white-space: nowrap;
+}
+
 .control-buttons {
   display: flex;
   justify-content: space-between;
@@ -193,13 +236,27 @@ body {
   color: red;
 }
 
-/* Game Mode Toggle */
-.game-mode-toggle {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Knockover Objects Button */
+#knockoverObjectsButton {
+  width: 100%;
+  margin-top: 10px;
+  background-color: rgba(0, 128, 0, 0.2);
+  border: 2px solid rgba(0, 128, 0, 0.5);
+  color: white;
+  transition: all 0.3s ease;
+  padding: 8px 15px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 
+#knockoverObjectsButton:hover {
+  background-color: rgba(0, 128, 0, 0.3);
+  border-color: rgba(0, 128, 0, 0.7);
+}
+
+/* Toggle Switch Styles */
 .switch {
   position: relative;
   display: inline-block;
@@ -228,21 +285,32 @@ body {
 .slider:before {
   position: absolute;
   content: "";
-  height: 16px;
-  width: 16px;
-  left: 4px;
-  bottom: 4px;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
   background-color: white;
   transition: .4s;
   border-radius: 50%;
 }
 
 input:checked + .slider {
-  background-color: #2196F3;
+  background-color: rgba(0, 255, 0, 0.3);
 }
 
 input:checked + .slider:before {
   transform: translateX(26px);
+  background-color: white;
+}
+
+/* Disabled toggle state */
+input:disabled + .slider {
+  background-color: rgba(128, 128, 128, 0.2);
+  cursor: not-allowed;
+}
+
+input:disabled + .slider:before {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 /* Modals */
