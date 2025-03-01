@@ -45,11 +45,6 @@
                     <input type="range" id="maxCatsInput" min="1" max="100" step="1" value="50">
                     <span id="maxCatsValue">50</span>
                 </div>
-                <div class="setting">
-                    <label for="fieldOfViewInput">Field of View:</label>
-                    <input type="range" id="fieldOfViewInput" min="30" max="120" step="1" value="75">
-                    <span id="fieldOfViewValue">75</span>
-                </div>
             </div>
 
             <div class="settings-section">
@@ -157,55 +152,20 @@
                 </div>
                 
                 <div class="setting">
-                    <label>Tornado Mode:</label>
+                    <label>Disco Mode:</label>
                     <label class="switch">
-                        <input type="checkbox" id="tornadoModeToggle">
+                        <input type="checkbox" id="discoModeButton">
                         <span class="slider"></span>
                     </label>
                 </div>
                 
-                <button id="crazyModeButton">Crazy Mode</button>
-            </div>
-            
-            <div class="settings-section">
-                <h3>Gravity Settings</h3>
                 <div class="setting">
-                    <label for="gravityToggle">Enable Gravity:</label>
+                    <label>Crazy Mode:</label>
                     <label class="switch">
-                        <input type="checkbox" id="gravityToggle">
+                        <input type="checkbox" id="crazyModeToggle">
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div class="setting">
-                    <label for="gravityStrength">Gravity Strength:</label>
-                    <input type="range" id="gravityStrength" min="0" max="0.1" step="0.001" value="0.01" disabled>
-                    <span id="gravityStrengthValue">0.010</span>
-                </div>
-            </div>
-        </div>
-        
-        <div id="knockoverModal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h2>Knock Over Objects</h2>
-                <div class="setting">
-                    <label>Object Type:</label>
-                    <select id="objectTypeSelect">
-                        <option value="cube">Cube</option>
-                        <option value="cylinder">Cylinder</option>
-                        <option value="pyramid">Pyramid</option>
-                    </select>
-                </div>
-                <div class="setting">
-                    <label>Object Color:</label>
-                    <input type="color" id="objectColorInput" value="#4a4a4a">
-                </div>
-                <div class="setting">
-                    <label>Object Size:</label>
-                    <input type="range" id="objectSizeInput" min="0.5" max="2" step="0.1" value="1">
-                    <span id="objectSizeValue">1.0</span>
-                </div>
-                <button id="spawnObjectButton" class="full-width-button">Spawn Object</button>
             </div>
         </div>
         
@@ -213,7 +173,7 @@
         <div id="credit">Created By Seliq Studios</div>
         <div id="fpsCounter">FPS: --</div>
         <div id="gameScoreDisplay">Score: <span id="gameScore">0</span></div>
-        <div id="versionText">v1.0.5</div>
+        <div id="versionText">v1.0.6</div>
     </div>
 
     <!-- Scripts -->
