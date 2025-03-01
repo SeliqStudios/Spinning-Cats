@@ -45,21 +45,9 @@ class CatSimulation {
 
     // Add max cats setting
     this.maxCats = 50;  // Default max cats
-    
-    // Add gravity settings
-    this.gravityEnabled = false;
-    this.gravityStrength = 0.01;
-    
-    // Physics interaction properties
-    this.objects = [];
 
-    this.isTornadoModeActive = false;
-    this.tornadoCenter = new THREE.Vector3(0, 0, 0);
-    this.tornadoRadius = 3;
-    this.tornadoHeight = 5;
-    this.tornadoSpeed = 0.05;
-
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    // Add a new flag for disco mode
+    this.isDiscoModeActive = false;
   }
 
   setupDragControls() {
@@ -470,20 +458,27 @@ class CatSimulation {
     };
 
     // Update input values to match default settings
-    document.getElementById('spawnRate').value = this.settings.spawnRate;
-    document.getElementById('spawnRateValue').textContent = this.settings.spawnRate;
-    
-    document.getElementById('speedRate').value = this.settings.speedRate;
-    document.getElementById('speedRateValue').textContent = this.settings.speedRate;
-    
-    document.getElementById('spinRate').value = this.settings.spinRate;
-    document.getElementById('spinRateValue').textContent = this.settings.spinRate;
-    
-    document.getElementById('despawnRate').value = this.settings.despawnRate;
-    document.getElementById('despawnRateValue').textContent = this.settings.despawnRate;
+    const spawnRateInput = document.getElementById('spawnRate');
+    const speedRateInput = document.getElementById('speedRate');
+    const spinRateInput = document.getElementById('spinRate');
+    const despawnRateInput = document.getElementById('despawnRate');
+    const catSizeInput = document.getElementById('catSize');
+    const spawnRateValue = document.getElementById('spawnRateValue');
+    const speedRateValue = document.getElementById('speedRateValue');
+    const spinRateValue = document.getElementById('spinRateValue');
+    const despawnRateValue = document.getElementById('despawnRateValue');
+    const catSizeValue = document.getElementById('catSizeValue');
 
-    document.getElementById('catSize').value = this.settings.catSize;
-    document.getElementById('catSizeValue').textContent = this.settings.catSize;
+    if (spawnRateInput) spawnRateInput.value = this.settings.spawnRate;
+    if (speedRateInput) speedRateInput.value = this.settings.speedRate;
+    if (spinRateInput) spinRateInput.value = this.settings.spinRate;
+    if (despawnRateInput) despawnRateInput.value = this.settings.despawnRate;
+    if (catSizeInput) catSizeInput.value = this.settings.catSize;
+    if (spawnRateValue) spawnRateValue.textContent = this.settings.spawnRate;
+    if (speedRateValue) speedRateValue.textContent = this.settings.speedRate;
+    if (spinRateValue) spinRateValue.textContent = this.settings.spinRate;
+    if (despawnRateValue) despawnRateValue.textContent = this.settings.despawnRate;
+    if (catSizeValue) catSizeValue.textContent = this.settings.catSize;
 
     // Restart to initial state by setting simulation running and spawning cats
     this.isSimulationRunning = true;
@@ -584,9 +579,10 @@ class CatSimulation {
     if (this.scene) return;
     
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(this.getInitialFieldOfView(), window.innerWidth / window.innerHeight, 0.1, 1000);
+    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     this.camera.position.z = 5;
 
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById("mainContent").appendChild(this.renderer.domElement);
 
@@ -608,16 +604,11 @@ class CatSimulation {
 
     this.setupGameMode();
 
-    this.initPhysicsInteraction();
-
     this.animate();
     this.spawnCats();
 
     // Setup settings event listeners
     this.setupSettingsListeners();
-
-    // Add tornado mode toggle setup
-    this.addTornadoModeToggle();
   }
 
   setupSettingsListeners() {
@@ -629,44 +620,65 @@ class CatSimulation {
     const settingsToggle = document.getElementById('settingsToggle');
     const settingsTab = document.getElementById('settingsTab');
 
+    // Null checks with fallback or early return
+    if (!spawnRateInput || !speedRateInput || !spinRateInput || 
+        !despawnRateInput || !catSizeInput || !settingsToggle || !settingsTab) {
+        console.warn('One or more settings elements not found. Skipping settings listener setup.');
+        return;
+    }
+
     // Update spawn rate display and setting
     spawnRateInput.addEventListener('input', (e) => {
-      document.getElementById('spawnRateValue').textContent = e.target.value;
-      this.settings.spawnRate = parseFloat(e.target.value);
-      // Restart cat spawning with new rate
-      this.stopSpawningCats();
-      this.spawnCats();
+        const spawnRateValue = document.getElementById('spawnRateValue');
+        if (spawnRateValue) {
+            spawnRateValue.textContent = e.target.value;
+        }
+        this.settings.spawnRate = parseFloat(e.target.value);
+        // Restart cat spawning with new rate
+        this.stopSpawningCats();
+        this.spawnCats();
     });
 
     // Update speed rate display and setting
     speedRateInput.addEventListener('input', (e) => {
-      document.getElementById('speedRateValue').textContent = e.target.value;
-      this.settings.speedRate = parseFloat(e.target.value);
+        const speedRateValue = document.getElementById('speedRateValue');
+        if (speedRateValue) {
+            speedRateValue.textContent = e.target.value;
+        }
+        this.settings.speedRate = parseFloat(e.target.value);
     });
 
     // Update spin rate display and setting
     spinRateInput.addEventListener('input', (e) => {
-      document.getElementById('spinRateValue').textContent = e.target.value;
-      this.settings.spinRate = parseFloat(e.target.value);
+        const spinRateValue = document.getElementById('spinRateValue');
+        if (spinRateValue) {
+            spinRateValue.textContent = e.target.value;
+        }
+        this.settings.spinRate = parseFloat(e.target.value);
     });
 
     // Despawn rate listener
     despawnRateInput.addEventListener('input', (e) => {
-      document.getElementById('despawnRateValue').textContent = e.target.value;
-      this.settings.despawnRate = parseFloat(e.target.value);
-      // No immediate action needed, will affect future cat spawns
+        const despawnRateValue = document.getElementById('despawnRateValue');
+        if (despawnRateValue) {
+            despawnRateValue.textContent = e.target.value;
+        }
+        this.settings.despawnRate = parseFloat(e.target.value);
+        // No immediate action needed, will affect future cat spawns
     });
 
     // Cat size listener
     catSizeInput.addEventListener('input', (e) => {
-      const size = parseFloat(e.target.value);
-      document.getElementById('catSizeValue').textContent = size.toFixed(1);
-      this.settings.catSize = size;
+        const catSizeValue = document.getElementById('catSizeValue');
+        if (catSizeValue) {
+            catSizeValue.textContent = parseFloat(e.target.value).toFixed(1);
+        }
+        this.settings.catSize = parseFloat(e.target.value);
     });
 
     // Toggle settings tab
     settingsToggle.addEventListener('click', () => {
-      settingsTab.classList.toggle('open');
+        settingsTab.classList.toggle('open');
     });
 
     const startStopButton = document.getElementById('startStopButton');
@@ -674,19 +686,19 @@ class CatSimulation {
 
     // Start/Stop button logic
     startStopButton.addEventListener('click', () => {
-      if (this.isSimulationRunning) {
-        this.stopSimulation();
-        startStopButton.textContent = 'Start';
-      } else {
-        this.startSimulation();
-        startStopButton.textContent = 'Stop';
-      }
+        if (this.isSimulationRunning) {
+            this.stopSimulation();
+            startStopButton.textContent = 'Start';
+        } else {
+            this.startSimulation();
+            startStopButton.textContent = 'Stop';
+        }
     });
 
     // Reset button logic
     resetButton.addEventListener('click', () => {
-      this.resetSimulation();
-      startStopButton.textContent = 'Stop';
+        this.resetSimulation();
+        startStopButton.textContent = 'Stop';
     });
 
     const breedSelect = document.getElementById('catBreedSelect');
@@ -696,129 +708,143 @@ class CatSimulation {
 
     // Update cat quantity display
     catQuantityInput.addEventListener('input', (e) => {
-      catQuantityValue.textContent = e.target.value;
+        if (catQuantityValue) {
+            catQuantityValue.textContent = e.target.value;
+        }
     });
 
     // Add breed selection listener
     spawnCatButton.addEventListener('click', () => {
-      // Only spawn if simulation is running
-      if (this.isSimulationRunning) {
-        const selectedBreed = breedSelect.value;
-        const catQuantity = parseInt(catQuantityInput.value, 10);
-        
-        // Ensure quantity is within reasonable bounds
-        const quantity = Math.min(Math.max(1, catQuantity), 20);
-        
-        for (let i = 0; i < quantity; i++) {
-          if (selectedBreed === 'random') {
-            // Spawn a random cat breed
-            this.spawnRandomCat();
-          } else {
-            // Find the variant corresponding to the selected breed
-            const selectedVariant = this.catVariants.find(variant => variant.name === selectedBreed);
+        // Only spawn if simulation is running
+        if (this.isSimulationRunning) {
+            const selectedBreed = breedSelect.value;
+            const catQuantity = parseInt(catQuantityInput.value, 10);
             
-            if (selectedVariant) {
-              // Create a cat with the specific breed
-              const cat = this.createCat(selectedVariant, this.settings.catSize || 1);
-              this.scene.add(cat);
-              this.cats.push(cat);
-              
-              // If crazy mode is active, make the new cat crazy
-              if (this.isCrazyModeActive) {
-                this.makeCatCrazy(cat);
-              }
-              
-              setTimeout(() => {
-                this.scene.remove(cat);
-                this.cats = this.cats.filter(c => c !== cat);
-                // Remove from crazy mode cats if applicable
-                if (this.crazyModeCats.has(cat)) {
-                  this.crazyModeCats.delete(cat);
+            // Ensure quantity is within reasonable bounds
+            const quantity = Math.min(Math.max(1, catQuantity), 20);
+            
+            for (let i = 0; i < quantity; i++) {
+                if (selectedBreed === 'random') {
+                    // Spawn a random cat breed
+                    this.spawnRandomCat();
+                } else {
+                    // Find the variant corresponding to the selected breed
+                    const selectedVariant = this.catVariants.find(variant => variant.name === selectedBreed);
+                    
+                    if (selectedVariant) {
+                        // Create a cat with the specific breed
+                        const cat = this.createCat(selectedVariant, this.settings.catSize || 1);
+                        this.scene.add(cat);
+                        this.cats.push(cat);
+                        
+                        // If crazy mode is active, make the new cat crazy
+                        if (this.isCrazyModeActive) {
+                            this.makeCatCrazy(cat);
+                        }
+                        
+                        setTimeout(() => {
+                            this.scene.remove(cat);
+                            this.cats = this.cats.filter(c => c !== cat);
+                            // Remove from crazy mode cats if applicable
+                            if (this.crazyModeCats.has(cat)) {
+                                this.crazyModeCats.delete(cat);
+                            }
+                        }, this.settings.despawnRate * 1000);
+                    }
                 }
-              }, this.settings.despawnRate * 1000);
             }
-          }
         }
-      }
     });
 
-    // Add Crazy Mode button
-    const crazyModeButton = document.getElementById('crazyModeButton');
-    crazyModeButton.addEventListener('click', () => {
-      this.toggleCrazyMode();
-      crazyModeButton.textContent = this.isCrazyModeActive ? 'Calm Down' : 'Crazy Mode';
-      crazyModeButton.classList.toggle('active');
-    });
+    // Add Crazy Mode toggle listener
+    const crazyModeToggle = document.getElementById('crazyModeToggle');
+    if (crazyModeToggle) {
+        crazyModeToggle.addEventListener('change', (event) => {
+            this.toggleCrazyMode();
+            // Optional: Add visual feedback or additional logic
+        });
+    }
+
+    // Remove the previous Crazy Mode button event listener if it exists
+    const previousCrazyModeButton = document.getElementById('crazyModeButton');
+    if (previousCrazyModeButton) {
+        previousCrazyModeButton.remove();
+    }
+
+    // Add Disco Mode button
+    const discoModeButton = document.getElementById('discoModeButton');
+    if (discoModeButton) {
+        discoModeButton.addEventListener('click', () => {
+            this.toggleDiscoMode();
+            discoModeButton.textContent = this.isDiscoModeActive ? 'Stop Disco' : 'Disco Mode';
+            discoModeButton.classList.toggle('active');
+        });
+    }
 
     // Background color listener
     const backgroundColorInput = document.getElementById('backgroundColor');
-    backgroundColorInput.addEventListener('input', (e) => {
-      document.body.style.backgroundColor = e.target.value;
-      
-      // If scene exists, update scene background color
-      if (this.scene) {
-        this.scene.background = new THREE.Color(e.target.value);
-      }
-    });
+    if (backgroundColorInput) {
+        backgroundColorInput.addEventListener('input', (e) => {
+            document.body.style.backgroundColor = e.target.value;
+            
+            // If scene exists, update scene background color
+            if (this.scene) {
+                this.scene.background = new THREE.Color(e.target.value);
+            }
+        });
+    }
 
     // Max cats input listener
     const maxCatsInput = document.getElementById('maxCatsInput');
     const maxCatsValue = document.getElementById('maxCatsValue');
+    if (maxCatsInput && maxCatsValue) {
+        maxCatsInput.addEventListener('input', (e) => {
+            const maxCats = parseInt(e.target.value, 10);
+            this.maxCats = maxCats;
+            maxCatsValue.textContent = maxCats;
 
-    maxCatsInput.addEventListener('input', (e) => {
-      const maxCats = parseInt(e.target.value, 10);
-      this.maxCats = maxCats;
-      maxCatsValue.textContent = maxCats;
-
-      // Optional: Immediately remove excess cats if over new limit
-      while (this.cats.length > this.maxCats) {
-        const catToRemove = this.cats.pop();
-        this.scene.remove(catToRemove);
-      }
-    });
-
-    // Field of View listener
-    const fieldOfViewInput = document.getElementById('fieldOfViewInput');
-    const fieldOfViewValue = document.getElementById('fieldOfViewValue');
-
-    fieldOfViewInput.addEventListener('input', (e) => {
-      const fov = parseFloat(e.target.value);
-      fieldOfViewValue.textContent = fov;
-      
-      // Update camera field of view
-      if (this.camera) {
-        this.camera.fov = fov;
-        this.camera.updateProjectionMatrix();
-        
-        // Save to local storage
-        localStorage.setItem('fieldOfView', fov);
-      }
-    });
-
-    // Set initial value from saved or default
-    fieldOfViewInput.value = this.getInitialFieldOfView();
-    fieldOfViewValue.textContent = this.getInitialFieldOfView();
-
-    // Gravity toggle setup
-    const gravityToggle = document.getElementById('gravityToggle');
-    const gravityStrengthInput = document.getElementById('gravityStrength');
-    const gravityStrengthValue = document.getElementById('gravityStrengthValue');
-
-    gravityToggle.addEventListener('change', (event) => {
-      this.gravityEnabled = event.target.checked;
-      gravityStrengthInput.disabled = !this.gravityEnabled;
-    });
-
-    gravityStrengthInput.addEventListener('input', (e) => {
-      const strength = parseFloat(e.target.value);
-      this.gravityStrength = strength;
-      gravityStrengthValue.textContent = strength.toFixed(3);
-    });
+            // Optional: Immediately remove excess cats if over new limit
+            while (this.cats.length > this.maxCats) {
+                const catToRemove = this.cats.pop();
+                this.scene.remove(catToRemove);
+            }
+        });
+    }
   }
 
-  getInitialFieldOfView() {
-    const savedFOV = localStorage.getItem('fieldOfView');
-    return savedFOV ? parseFloat(savedFOV) : 75;
+  toggleDiscoMode() {
+    this.isDiscoModeActive = !this.isDiscoModeActive;
+    
+    const backgroundColorInput = document.getElementById('backgroundColor');
+    const savedBackgroundColor = backgroundColorInput ? backgroundColorInput.value : '#000000';
+
+    if (this.isDiscoModeActive) {
+        document.body.classList.add('disco-mode');
+        
+        // Optional: Add some cat movement/dance
+        this.cats.forEach(cat => {
+            cat.rotation.x += Math.random() * Math.PI;
+            cat.rotation.y += Math.random() * Math.PI;
+            cat.rotation.z += Math.random() * Math.PI;
+        });
+    } else {
+        document.body.classList.remove('disco-mode');
+        document.body.style.backgroundColor = savedBackgroundColor;
+        
+        // Restore original cat rotations
+        this.cats.forEach(cat => {
+            cat.rotation.x = 0;
+            cat.rotation.y = 0;
+            cat.rotation.z = 0;
+        });
+    }
+
+    // If scene exists, update background
+    if (this.scene) {
+        this.scene.background = this.isDiscoModeActive 
+            ? null 
+            : new THREE.Color(savedBackgroundColor);
+    }
   }
 
   setupGameMode() {
@@ -829,99 +855,109 @@ class CatSimulation {
     const resetButton = document.getElementById('resetButton');
     const spawnCatButton = document.getElementById('spawnCatButton');
     const crazyModeButton = document.getElementById('crazyModeButton');
+    const discoModeButton = document.getElementById('discoModeButton');
 
     let gameModeCatMovementInterval = null;
 
     // Remove existing event listeners to prevent multiple bindings
     const boundHandleCatPop = this.handleCatPop.bind(this);
 
-    gameModeToggle.addEventListener('change', (event) => {
-      this.isGameModeActive = event.target.checked;
-      
-      // Clear all existing cats first
-      this.cats.forEach(cat => {
-        this.scene.remove(cat);
-      });
-      this.cats = [];
+    if (gameModeToggle) {
+        gameModeToggle.addEventListener('change', (event) => {
+            this.isGameModeActive = event.target.checked;
+            if (gameScoreDisplay) {
+                gameScoreDisplay.classList.toggle('active', this.isGameModeActive);
+            }
+            
+            // Clear all existing cats first
+            this.cats.forEach(cat => {
+                this.scene.remove(cat);
+            });
+            this.cats = [];
 
-      if (this.isGameModeActive) {
-        // Disable all settings inputs
-        settingsInputs.forEach(input => {
-          if (input !== gameModeToggle) {
-            input.disabled = true;
-            input.classList.add('disabled');
-          }
+            if (this.isGameModeActive) {
+                // Disable all settings inputs
+                settingsInputs.forEach(input => {
+                    if (input !== gameModeToggle) {
+                        input.disabled = true;
+                        input.classList.add('disabled');
+                    }
+                });
+
+                // Disable buttons
+                if (startStopButton) startStopButton.disabled = true;
+                if (resetButton) resetButton.disabled = true;
+                if (spawnCatButton) spawnCatButton.disabled = true;
+                if (crazyModeButton) crazyModeButton.disabled = true;
+                if (discoModeButton) discoModeButton.disabled = true;
+
+                this.gameScore = 0;
+                if (document.getElementById('gameScore')) {
+                    document.getElementById('gameScore').textContent = this.gameScore;
+                }
+                
+                // Spawn a new cat for game mode
+                const randomVariant = this.catVariants[Math.floor(Math.random() * this.catVariants.length)];
+                const gameCat = this.createCat(randomVariant, this.settings.catSize || 1);
+                this.scene.add(gameCat);
+                this.cats.push(gameCat);
+
+                // Set up interval to move cat randomly every 5 seconds
+                gameModeCatMovementInterval = setInterval(() => {
+                    if (this.isGameModeActive && this.cats.length > 0) {
+                        const cat = this.cats[0];
+                        // Random position within bounds
+                        cat.position.set(
+                            (Math.random() - 0.5) * 8,  // Wider x range
+                            (Math.random() - 0.5) * 8,  // Wider y range
+                            (Math.random() - 0.5) * 8   // Wider z range
+                        );
+                    }
+                }, 5000);
+                
+                // Add click/tap event listener to pop cats
+                this.renderer.domElement.addEventListener('click', boundHandleCatPop);
+                this.renderer.domElement.addEventListener('touchstart', boundHandleCatPop, { passive: false });
+            } else {
+                // Clear the movement interval
+                if (gameModeCatMovementInterval) {
+                    clearInterval(gameModeCatMovementInterval);
+                }
+
+                // Re-enable all settings inputs
+                settingsInputs.forEach(input => {
+                    input.disabled = false;
+                    input.classList.remove('disabled');
+                });
+
+                // Re-enable buttons
+                if (startStopButton) startStopButton.disabled = false;
+                if (resetButton) resetButton.disabled = false;
+                if (spawnCatButton) spawnCatButton.disabled = false;
+                if (crazyModeButton) crazyModeButton.disabled = false;
+                if (discoModeButton) discoModeButton.disabled = false;
+
+                // Clear any remaining cats
+                this.cats.forEach(cat => {
+                    this.scene.remove(cat);
+                });
+                this.cats = [];
+
+                // Remove event listeners when game mode is off
+                this.renderer.domElement.removeEventListener('click', boundHandleCatPop);
+                this.renderer.domElement.removeEventListener('touchstart', boundHandleCatPop);
+
+                // Restart normal cat spawning
+                this.spawnCats();
+            }
         });
-
-        // Disable buttons
-        startStopButton.disabled = true;
-        resetButton.disabled = true;
-        spawnCatButton.disabled = true;
-        crazyModeButton.disabled = true;
-
-        this.gameScore = 0;
-        document.getElementById('gameScore').textContent = this.gameScore;
-        
-        // Spawn a new cat for game mode
-        const randomVariant = this.catVariants[Math.floor(Math.random() * this.catVariants.length)];
-        const gameCat = this.createCat(randomVariant, this.settings.catSize || 1);
-        this.scene.add(gameCat);
-        this.cats.push(gameCat);
-
-        // Set up interval to move cat randomly every 5 seconds
-        gameModeCatMovementInterval = setInterval(() => {
-          if (this.isGameModeActive && this.cats.length > 0) {
-            const cat = this.cats[0];
-            // Random position within bounds
-            cat.position.set(
-              (Math.random() - 0.5) * 8,  // Wider x range
-              (Math.random() - 0.5) * 8,  // Wider y range
-              (Math.random() - 0.5) * 8   // Wider z range
-            );
-          }
-        }, 5000);
-        
-        // Add click/tap event listener to pop cats
-        this.renderer.domElement.addEventListener('click', boundHandleCatPop);
-        this.renderer.domElement.addEventListener('touchstart', boundHandleCatPop, { passive: false });
-      } else {
-        // Clear the movement interval
-        if (gameModeCatMovementInterval) {
-          clearInterval(gameModeCatMovementInterval);
-        }
-
-        // Re-enable all settings inputs
-        settingsInputs.forEach(input => {
-          input.disabled = false;
-          input.classList.remove('disabled');
-        });
-
-        // Re-enable buttons
-        startStopButton.disabled = false;
-        resetButton.disabled = false;
-        spawnCatButton.disabled = false;
-        crazyModeButton.disabled = false;
-
-        // Clear any remaining cats
-        this.cats.forEach(cat => {
-          this.scene.remove(cat);
-        });
-        this.cats = [];
-
-        // Remove event listeners when game mode is off
-        this.renderer.domElement.removeEventListener('click', boundHandleCatPop);
-        this.renderer.domElement.removeEventListener('touchstart', boundHandleCatPop);
-
-        // Restart normal cat spawning
-        this.spawnCats();
-      }
-    });
+    }
   }
 
   handleCatPop(event) {
     // Prevent default touch behavior for mobile
     if (event.type === 'touchstart') {
-      event.preventDefault();
+        event.preventDefault();
     }
 
     // Calculate mouse/touch position
@@ -939,155 +975,61 @@ class CatSimulation {
     const intersects = this.raycaster.intersectObjects(this.cats, true);
 
     if (intersects.length > 0) {
-      // Find the topmost parent (the cat group)
-      const cat = intersects[0].object.parent;
+        // Find the topmost parent (the cat group)
+        const cat = intersects[0].object.parent;
         
-      if (this.isGameModeActive) {
-        // Animate pop and remove cat only in game mode
-        this.popCat(cat);
-        
-        // Increment score
-        this.gameScore++;
-        document.getElementById('gameScore').textContent = this.gameScore;
-      }
+        if (this.isGameModeActive) {
+            // Animate pop and remove cat only in game mode
+            this.popCat(cat);
+            
+            // Increment score
+            this.gameScore++;
+            if (document.getElementById('gameScore')) {
+                document.getElementById('gameScore').textContent = this.gameScore;
+            }
+        }
     }
   }
 
   popCat(cat) {
     // Add pop animation
     cat.children.forEach(child => {
-      child.material.transparent = true;
-      child.material.opacity = 1;
+        child.material.transparent = true;
+        child.material.opacity = 1;
     });
 
     // Remove cat from scene and cats array only in game mode
     if (this.isGameModeActive) {
-      this.scene.remove(cat);
-      this.cats = this.cats.filter(c => c !== cat);
+        this.scene.remove(cat);
+        this.cats = this.cats.filter(c => c !== cat);
     
-      // Remove from crazy mode cats if applicable
-      if (this.crazyModeCats.has(cat)) {
-        this.crazyModeCats.delete(cat);
-      }
-    }
-  }
-
-  createCatTrail(cat) {
-    // Create a trail renderer for the cat
-    const trailGeometry = new THREE.BufferGeometry();
-    const trailPositions = [];
-    const trailColors = [];
-
-    // Create initial positions and colors
-    for (let i = 0; i < 20; i++) {
-      trailPositions.push(cat.position.x, cat.position.y, cat.position.z);
-      
-      // Use the cat's base color with decreasing opacity
-      const baseColor = cat.children[0].material.color;
-      trailColors.push(baseColor.r, baseColor.g, baseColor.b, 1 - (i * 0.05));
-    }
-
-    trailGeometry.setAttribute('position', new THREE.Float32BufferAttribute(trailPositions, 3));
-    trailGeometry.setAttribute('color', new THREE.Float32BufferAttribute(trailColors, 4));
-
-    const trailMaterial = new THREE.PointsMaterial({
-      size: 0.1,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.7
-    });
-
-    const trail = new THREE.Points(trailGeometry, trailMaterial);
-    this.scene.add(trail);
-
-    return {
-      trail,
-      update: (newPosition) => {
-        const positions = trail.geometry.attributes.position.array;
-        const colors = trail.geometry.attributes.color.array;
-
-        // Shift positions back
-        for (let i = positions.length - 1; i >= 3; i--) {
-          positions[i] = positions[i - 3];
+        // Remove from crazy mode cats if applicable
+        if (this.crazyModeCats.has(cat)) {
+            this.crazyModeCats.delete(cat);
         }
-
-        // Set new position at the start
-        positions[0] = newPosition.x;
-        positions[1] = newPosition.y;
-        positions[2] = newPosition.z;
-
-        trail.geometry.attributes.position.needsUpdate = true;
-      }
-    };
+    }
   }
 
   toggleCrazyMode() {
     this.isCrazyModeActive = !this.isCrazyModeActive;
 
-    if (this.isCrazyModeActive) {
-      // Activate crazy mode for existing cats
-      this.cats.forEach(cat => {
-        this.makeCatCrazy(cat);
-        
-        // Create trail for each crazy cat
-        cat.userData.trail = this.createCatTrail(cat);
-      });
-    } else {
-      // Restore normal behavior
-      this.crazyModeCats.forEach((crazyData, cat) => {
-        // Reset velocity and remove crazy mode properties
-        cat.userData.velocity = null;
-        cat.userData.isCrazy = false;
-        
-        // Remove trail if exists
-        if (cat.userData.trail) {
-          this.scene.remove(cat.userData.trail.trail);
-          cat.userData.trail = null;
-        }
-      });
-      this.crazyModeCats.clear();
+    // Update the toggle switch to reflect current state
+    const crazyModeToggle = document.getElementById('crazyModeToggle');
+    if (crazyModeToggle) {
+        crazyModeToggle.checked = this.isCrazyModeActive;
     }
-  }
 
-  updateCrazyModeCats() {
-    if (!this.isCrazyModeActive) return;
-
-    const bounds = 5;
-
-    this.crazyModeCats.forEach((crazyData, cat) => {
-      if (!cat.userData.velocity) return;
-
-      cat.position.add(cat.userData.velocity);
-
-      // Update trail if it exists
-      if (cat.userData.trail) {
-        cat.userData.trail.update(cat.position);
-      }
-
-      if (Math.abs(cat.position.x) > bounds) {
-        cat.userData.velocity.x *= -1;
-      }
-      if (Math.abs(cat.position.y) > bounds) {
-        cat.userData.velocity.y *= -1;
-      }
-      if (Math.abs(cat.position.z) > bounds) {
-        cat.userData.velocity.z *= -1;
-      }
-
-      cat.rotation.x += Math.random() * 0.1 - 0.05;
-      cat.rotation.y += Math.random() * 0.1 - 0.05;
-      cat.rotation.z += Math.random() * 0.1 - 0.05;
-    });
-
-    if (this.camera) {
-      const jitterIntensity = 0.05;
-      this.camera.position.x += (Math.random() - 0.5) * jitterIntensity;
-      this.camera.position.y += (Math.random() - 0.5) * jitterIntensity;
-      this.camera.position.z += (Math.random() - 0.5) * jitterIntensity;
-      
-      this.camera.rotation.x += (Math.random() - 0.5) * 0.01;
-      this.camera.rotation.y += (Math.random() - 0.5) * 0.01;
-      this.camera.rotation.z += (Math.random() - 0.5) * 0.01;
+    if (this.isCrazyModeActive) {
+        // Activate crazy mode for existing cats
+        this.cats.forEach(cat => this.makeCatCrazy(cat));
+    } else {
+        // Restore normal behavior
+        this.crazyModeCats.forEach((crazyData, cat) => {
+            // Reset velocity and remove crazy mode properties
+            cat.userData.velocity = null;
+            cat.userData.isCrazy = false;
+        });
+        this.crazyModeCats.clear();
     }
   }
 
@@ -1097,237 +1039,83 @@ class CatSimulation {
     // Set crazy mode properties
     cat.userData.isCrazy = true;
     cat.userData.velocity = new THREE.Vector3(
-      (Math.random() - 0.5) * 0.5,  // Random x velocity
-      (Math.random() - 0.5) * 0.5,  // Random y velocity
-      (Math.random() - 0.5) * 0.5   // Random z velocity
+        (Math.random() - 0.5) * 0.5,  // Random x velocity
+        (Math.random() - 0.5) * 0.5,  // Random y velocity
+        (Math.random() - 0.5) * 0.5   // Random z velocity
     );
 
     // Store in crazy mode cats map
     this.crazyModeCats.set(cat, {
-      originalPosition: cat.position.clone()
-    });
-
-    // Create trail for the cat
-    cat.userData.trail = this.createCatTrail(cat);
-  }
-
-  initPhysicsInteraction() {
-    this.objects = []; // Array to store interactive objects
-    
-    const knockoverButton = document.getElementById('knockoverObjectsButton');
-    const knockoverModal = document.getElementById('knockoverModal');
-    
-    if (!knockoverButton || !knockoverModal) {
-      console.warn('Physics interaction elements not found');
-      return;
-    }
-
-    const closeModalBtn = knockoverModal.querySelector('.close-modal');
-    const spawnObjectButton = document.getElementById('spawnObjectButton');
-    const objectTypeSelect = document.getElementById('objectTypeSelect');
-    const objectColorInput = document.getElementById('objectColorInput');
-    const objectSizeInput = document.getElementById('objectSizeInput');
-    const objectSizeValue = document.getElementById('objectSizeValue');
-
-    if (!closeModalBtn || !spawnObjectButton || !objectTypeSelect || 
-        !objectColorInput || !objectSizeInput || !objectSizeValue) {
-      console.warn('Some physics interaction elements are missing');
-      return;
-    }
-
-    objectSizeInput.addEventListener('input', (e) => {
-      objectSizeValue.textContent = e.target.value;
-    });
-
-    knockoverButton.addEventListener('click', () => {
-      knockoverModal.style.display = 'block';
-    });
-
-    closeModalBtn.addEventListener('click', () => {
-      knockoverModal.style.display = 'none';
-    });
-
-    window.addEventListener('click', (event) => {
-      if (event.target === knockoverModal) {
-        knockoverModal.style.display = 'none';
-      }
-    });
-
-    spawnObjectButton.addEventListener('click', () => {
-      const objectType = objectTypeSelect.value;
-      const objectColor = parseInt(objectColorInput.value.replace('#', ''), 16);
-      const objectSize = parseFloat(objectSizeInput.value);
-
-      const object = this.createInteractiveObject(objectType, objectColor, objectSize);
-      
-      if (this.scene) {
-        this.scene.add(object);
-        this.objects.push(object);
-      } else {
-        console.warn('Cannot add object: scene not initialized');
-      }
+        originalPosition: cat.position.clone()
     });
   }
 
-  createInteractiveObject(type, color, size = 1) {
-    let geometry;
-    switch(type) {
-      case 'cube':
-        geometry = new THREE.BoxGeometry(size, size, size);
-        break;
-      case 'cylinder':
-        geometry = new THREE.CylinderGeometry(size/2, size/2, size, 32);
-        break;
-      case 'pyramid':
-        geometry = new THREE.ConeGeometry(size/2, size, 4);
-        break;
-      default:
-        geometry = new THREE.BoxGeometry(size, size, size);
-    }
+  updateCrazyModeCats() {
+    if (!this.isCrazyModeActive) return;
 
-    const material = new THREE.MeshPhongMaterial({ color: color });
-    const mesh = new THREE.Mesh(geometry, material);
+    const bounds = 5; // Boundary for cat movement
 
-    mesh.position.set(
-      (Math.random() - 0.5) * 4,
-      (Math.random() - 0.5) * 4,
-      (Math.random() - 0.5) * 4
-    );
+    this.crazyModeCats.forEach((cat, key) => {
+        if (!key.userData.velocity) return;
 
-    mesh.userData = {
-      isInteractive: true,
-      velocity: new THREE.Vector3(0, 0, 0),
-      mass: size
-    };
+        // Update position based on velocity
+        key.position.add(key.userData.velocity);
 
-    return mesh;
-  }
+        // Bounce off walls
+        if (Math.abs(key.position.x) > bounds) {
+            key.userData.velocity.x *= -1;
+        }
+        if (Math.abs(key.position.y) > bounds) {
+            key.userData.velocity.y *= -1;
+        }
+        if (Math.abs(key.position.z) > bounds) {
+            key.userData.velocity.z *= -1;
+        }
 
-  simulateObjectInteractions() {
-    if (!this.isSimulationRunning) return;
+        // Add some random rotation for extra craziness
+        key.rotation.x += Math.random() * 0.1 - 0.05;
+        key.rotation.y += Math.random() * 0.1 - 0.05;
+        key.rotation.z += Math.random() * 0.1 - 0.05;
+    });
 
-    this.cats.forEach(cat => {
-      this.objects.forEach(object => {
-        const distance = cat.position.distanceTo(object.position);
+    // Add camera jittering during crazy mode
+    if (this.camera) {
+        const jitterIntensity = 0.05;
+        this.camera.position.x += (Math.random() - 0.5) * jitterIntensity;
+        this.camera.position.y += (Math.random() - 0.5) * jitterIntensity;
+        this.camera.position.z += (Math.random() - 0.5) * jitterIntensity;
         
-        if (distance < 1) {
-          const pushForce = new THREE.Vector3()
-            .subVectors(object.position, cat.position)
-            .normalize()
-            .multiplyScalar(0.1 / object.userData.mass);
-          
-          object.userData.velocity.add(pushForce);
-        }
-      });
-    });
-
-    this.objects.forEach(object => {
-      object.position.add(object.userData.velocity);
-
-      object.userData.velocity.multiplyScalar(0.99);
-
-      object.rotation.x += object.userData.velocity.x * 0.1;
-      object.rotation.y += object.userData.velocity.y * 0.1;
-      object.rotation.z += object.userData.velocity.z * 0.1;
-
-      const bounds = 5;
-      if (Math.abs(object.position.x) > bounds) object.userData.velocity.x *= -0.8;
-      if (Math.abs(object.position.y) > bounds) object.userData.velocity.y *= -0.8;
-      if (Math.abs(object.position.z) > bounds) object.userData.velocity.z *= -0.8;
-    });
-  }
-
-  addTornadoModeToggle() {
-    const tornadoModeToggle = document.getElementById('tornadoModeToggle');
-    
-    if (!tornadoModeToggle) {
-      console.warn('Tornado mode toggle not found');
-      return;
+        // Optional: Add slight rotation jitter
+        this.camera.rotation.x += (Math.random() - 0.5) * 0.01;
+        this.camera.rotation.y += (Math.random() - 0.5) * 0.01;
+        this.camera.rotation.z += (Math.random() - 0.5) * 0.01;
     }
-
-    this.isTornadoModeActive = false;
-    this.tornadoCenter = new THREE.Vector3(0, 0, 0);
-    this.tornadoRadius = 3;
-    this.tornadoHeight = 5;
-    this.tornadoSpeed = 0.05;
-
-    tornadoModeToggle.addEventListener('change', (event) => {
-      this.isTornadoModeActive = event.target.checked;
-
-      if (this.isTornadoModeActive) {
-        // Disable other conflicting modes
-        if (this.isCrazyModeActive) {
-          const crazyModeButton = document.getElementById('crazyModeButton');
-          crazyModeButton.click(); // Toggle off crazy mode
-        }
-      }
-    });
-  }
-
-  updateTornadoModeCats() {
-    if (!this.isTornadoModeActive) return;
-
-    this.cats.forEach((cat, index) => {
-      // Calculate tornado trajectory
-      const angle = index * (Math.PI * 2 / this.cats.length) + Date.now() * this.tornadoSpeed * 0.01;
-      const heightFactor = (cat.position.y + this.tornadoHeight / 2) / this.tornadoHeight;
-      
-      // Spiral movement
-      cat.position.x = this.tornadoCenter.x + 
-        Math.cos(angle) * this.tornadoRadius * (1 - heightFactor);
-      cat.position.z = this.tornadoCenter.z + 
-        Math.sin(angle) * this.tornadoRadius * (1 - heightFactor);
-      
-      // Vertical movement
-      cat.position.y += this.tornadoSpeed * 0.1;
-      
-      // Reset position if cat goes too high
-      if (cat.position.y > this.tornadoHeight) {
-        cat.position.y = -this.tornadoHeight / 2;
-      }
-
-      // Spinning rotation
-      cat.rotation.x += Math.sin(angle) * 0.1;
-      cat.rotation.y += Math.cos(angle) * 0.1;
-      cat.rotation.z += this.tornadoSpeed * 0.5;
-    });
   }
 
   animate() {
     requestAnimationFrame(() => this.animate());
     
     if (this.isSimulationRunning) {
-      this.updateCrazyModeCats();
-      this.updateTornadoModeCats();
+        // Update crazy mode cats if active
+        this.updateCrazyModeCats();
 
-      this.cats.forEach(cat => {
-        if (this.gravityEnabled && !cat.userData?.isCrazy) {
-          cat.position.y -= this.gravityStrength;
-          
-          if (cat.position.y < -5) {
-            cat.position.y = -5;
-            cat.rotation.x *= -0.5;
-            cat.rotation.z *= -0.5;
-          }
-        }
-
-        if (!cat.userData?.isCrazy) {
-          cat.rotation.x += this.settings.spinRate;
-          cat.rotation.y += this.settings.spinRate;
-          
-          if (cat.children[8]) {
-            cat.children[8].rotation.z = Math.sin(Date.now() * 0.005) * 0.2;
-          }
-          if (cat.children[4] && cat.children[5]) {
-            const pupilOffset = Math.sin(Date.now() * 0.003) * 0.01;
-            cat.children[4].position.x = 0.78 + pupilOffset;
-            cat.children[5].position.x = 0.78 + pupilOffset;
-          }
-        }
-      });
+        this.cats.forEach(cat => {
+            // Only apply rotations and animations if simulation is running
+            if (!cat.userData?.isCrazy) {
+                cat.rotation.x += this.settings.spinRate;
+                cat.rotation.y += this.settings.spinRate;
+                
+                if (cat.children[8]) {
+                    cat.children[8].rotation.z = Math.sin(Date.now() * 0.005) * 0.2;
+                }
+                if (cat.children[4] && cat.children[5]) {
+                    const pupilOffset = Math.sin(Date.now() * 0.003) * 0.01;
+                    cat.children[4].position.x = 0.78 + pupilOffset;
+                    cat.children[9].position.x = 0.78 + pupilOffset; //index 9 instead of 5 to correctly target the second pupil
+                }
+            }
+        });
     }
-    
-    this.simulateObjectInteractions();
     
     this.renderer.render(this.scene, this.camera);
   }
@@ -1335,8 +1123,9 @@ class CatSimulation {
 
 // Initialize when document is loaded
 window.addEventListener('load', () => {
-  setTimeout(() => {
-    const simulation = new CatSimulation();
-    simulation.init();
-  }, 100);
+    // Wait a bit to make sure Three.js is loaded
+    setTimeout(() => {
+        const simulation = new CatSimulation();
+        simulation.init();
+    }, 100);
 });
